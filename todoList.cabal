@@ -36,6 +36,9 @@ library
   build-depends:
       base >=4.7 && <5
     , brick
+    , mtl
+    , text
+    , vty
   default-language: Haskell2010
 
 executable todoList-exe
@@ -50,7 +53,10 @@ executable todoList-exe
   build-depends:
       base >=4.7 && <5
     , brick
+    , mtl
+    , text
     , todoList
+    , vty
   default-language: Haskell2010
 
 test-suite todoList-test
@@ -66,5 +72,8 @@ test-suite todoList-test
   build-depends:
       base >=4.7 && <5
     , brick
+    , mtl
+    , text
     , todoList
+    , vty
   default-language: Haskell2010
