@@ -25,6 +25,9 @@ dependencies:
 - vty
 - mtl
 - text
+- vector
+- microlens-mtl
+- microlens
 
 extra-deps:
   - vty-6.1

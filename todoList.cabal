@@ -36,8 +36,11 @@ library
   build-depends:
       base >=4.7 && <5
     , brick
+    , microlens
+    , microlens-mtl
     , mtl
     , text
+    , vector
     , vty
   default-language: Haskell2010
 
@@ -53,9 +56,12 @@ executable todoList-exe
   build-depends:
       base >=4.7 && <5
     , brick
+    , microlens
+    , microlens-mtl
     , mtl
     , text
     , todoList
+    , vector
     , vty
   default-language: Haskell2010
 
@@ -72,8 +78,11 @@ test-suite todoList-test
   build-depends:
       base >=4.7 && <5
     , brick
+    , microlens
+    , microlens-mtl
     , mtl
     , text
     , todoList
+    , vector
     , vty
   default-language: Haskell2010
