@@ -1,109 +1,93 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 module Main where
 
+import Control.Monad (void)
+import Data.Maybe (fromMaybe)
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
+import Data.Monoid
 #endif
-
-import qualified Data.Text as T
 import qualified Graphics.Vty as V
+import Lens.Micro ((^.))
 
-import qualified Brick.Main as M
-import Brick.Util (fg, on)
 import qualified Brick.AttrMap as A
-import Brick.Types
-  ( Widget
-  )
-import Brick.Widgets.Core
-  ( (<+>)
-  , (<=>)
-  , withAttr
-  , vLimit
-  , hLimit
-  , hBox
-  , vBox
-  , updateAttrMap
-  , withBorderStyle
-  , txt
-  , str
-  , padLeftRight
-  , padRight
-  ,padTopBottom
-  )
-import qualified Brick.Widgets.Center as C
+import qualified Brick.Main as M
+import Brick.Types (Widget)
+import qualified Brick.Types as T
+import Brick.Util (fg, on)
 import qualified Brick.Widgets.Border as B
-import qualified Brick.Widgets.Border.Style as BS
+import qualified Brick.Widgets.Center as C
+import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>))
+import qualified Brick.Widgets.List as L
+import qualified Data.Vector as Vec
 
-styles :: [(String, BS.BorderStyle)]
-styles =
-    [ ("ascii", BS.ascii)
-    , ("unicode", BS.unicode)
-    , ("unicode bold", BS.unicodeBold)
-    , ("unicode rounded", BS.unicodeRounded)
-    , ("custom", custom)
-    , ("from 'x'", BS.borderStyleFromChar 'x')
+drawUI :: (Show a) => L.List () a -> [Widget ()]
+drawUI l = [ui]
+    where
+        label = str "Item " <+> cur <+> str " of " <+> total
+        cur = case l^.(L.listSelectedL) of
+                Nothing -> str "-"
+                Just i  -> str (show (i + 1))
+        total = str $ show $ Vec.length $ l^.(L.listElementsL)
+        box = B.borderWithLabel label $
+              hLimit 25 $
+              vLimit 15 $
+              L.renderList listDrawElement True l
+        ui = C.vCenter $ vBox [ C.hCenter box
+                              , str " "
+                              , C.hCenter $ str "Press +/- to add/remove list elements."
+                              , C.hCenter $ str "Press Esc to exit."
+                              ]
+
+appEvent :: L.List () Char -> T.BrickEvent () e -> T.EventM () (T.Next (L.List () Char))
+appEvent l (T.VtyEvent e) =
+    case e of
+        V.EvKey (V.KChar '+') [] ->
+            let el = nextElement (L.listElements l)
+                pos = Vec.length $ l^.(L.listElementsL)
+            in M.continue $ L.listInsert pos el $ L.listInsert pos el l
+
+        V.EvKey (V.KChar '-') [] ->
+            case l^.(L.listSelectedL) of
+                Nothing -> M.continue l
+                Just i  -> M.continue $ L.listRemove i l
+
+        V.EvKey V.KEsc [] -> M.halt l
+
+        ev -> M.continue =<< (L.handleListEventVi L.handleListEvent) ev l
+    where
+      nextElement :: Vec.Vector Char -> Char
+      nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+appEvent l _ = M.continue l
+
+listDrawElement :: (Show a) => Bool -> a -> Widget ()
+listDrawElement sel a =
+    let selStr s = if sel
+                   then withAttr customAttr (str $ "<" <> s <> ">")
+                   else str s
+    in C.hCenter $ str "Item " <+> (selStr $ show a)
+
+initialState :: L.List () Char
+initialState = L.list () (Vec.fromList ['a','b','c']) 1
+
+customAttr :: A.AttrName
+customAttr = L.listSelectedAttr <> "custom"
+
+theMap :: A.AttrMap
+theMap = A.attrMap V.defAttr
+    [ (L.listAttr,            V.white `on` V.blue)
+    , (L.listSelectedAttr,    V.blue `on` V.white)
+    , (customAttr,            fg V.cyan)
     ]
 
-custom :: BS.BorderStyle
-custom =
-    BS.BorderStyle { BS.bsCornerTL = '/'
-                   , BS.bsCornerTR = '\\'
-                   , BS.bsCornerBR = '/'
-                   , BS.bsCornerBL = '\\'
-                   , BS.bsIntersectFull = '.'
-                   , BS.bsIntersectL = '.'
-                   , BS.bsIntersectR = '.'
-                   , BS.bsIntersectT = '.'
-                   , BS.bsIntersectB = '.'
-                   , BS.bsHorizontal = '*'
-                   , BS.bsVertical = '!'
-                   }
-
-borderDemos :: [Widget ()]
-borderDemos = mkBorderDemo <$> styles
-
-mkBorderDemo :: (String, BS.BorderStyle) -> Widget ()
-mkBorderDemo (styleName, sty) =
-    withBorderStyle sty $
-    B.borderWithLabel (str "label") $
-    hLimit 10  $
-    vLimit 18 $
-    C.hCenter $
-    padTopBottom 2 $
-    str $ styleName <> " style"
-
-titleAttr :: A.AttrName
-titleAttr = A.attrName "title"
-
-attrs :: [(A.AttrName, V.Attr)]
-attrs =
-    [ (B.borderAttr,         V.yellow `on` V.black)
-    , (B.vBorderAttr,        fg V.cyan)
-    , (B.hBorderAttr,        fg V.magenta)
-    , (titleAttr,            fg V.cyan)
-    ]
-
-colorDemo :: Widget ()
-colorDemo =
-    updateAttrMap (A.applyAttrMappings attrs) $
-    B.borderWithLabel (withAttr titleAttr $ str "title") $
-    hLimit 20 $
-    vLimit 5 $
-    C.center $
-    txt "colors!"
-
-ui :: Widget ()
-ui =
-    vBox [ hBox borderDemos
-         , B.hBorder
-         , colorDemo
-         , B.hBorderWithLabel (str "horizontal border label")
-         , C.center (str "Left of vertical border")
-        ,  C.center (str "Left of vertical border")
-             <+> B.vBorder
-             <+> C.center (str "Right of vertical border")
-         ]
+theApp :: M.App (L.List () Char) e ()
+theApp =
+    M.App { M.appDraw = drawUI
+          , M.appChooseCursor = M.showFirstCursor
+          , M.appHandleEvent = appEvent
+          , M.appStartEvent = return
+          , M.appAttrMap = const theMap
+          }
 
 main :: IO ()
-main = M.simpleMain ui
+main = void $ M.defaultMain theApp initialState
