@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Main where
 
 import Control.Monad (void)
@@ -80,25 +81,28 @@ listDrawElement sel a =
     in C.hCenter $ str "Item " <+> (selStr $ show a)
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
-appEvent l (T.VtyEvent e) = undefined
---     case e of
---         V.EvKey (V.KChar '+') [] ->
---             let el = nextElement (L.listElements l)
---                 pos = Vec.length $ l^.(L.listElementsL)
---             in M.continue $ L.listInsert pos el $ L.listInsert pos el l
+appEvent appState (T.VtyEvent e) =  
+    let index = pointer appState
+        l = getList index appState
+    in 
+        case e of
+            V.EvKey (V.KChar '+') [] ->
+                let el = IMT (0, "this is my new String")
+                    pos = Vec.length $ l^.(L.listElementsL)
+                in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
 
---         V.EvKey (V.KChar '-') [] ->
---             case l^.(L.listSelectedL) of
---                 Nothing -> M.continue l
---                 Just i  -> M.continue $ L.listRemove i l
+            -- V.EvKey (V.KChar '-') [] ->
+            --     case l^.(L.listSelectedL) of
+            --         Nothing -> M.continue l
+            --         Just i  -> M.continue $ L.listRemove i l
 
---         V.EvKey V.KEsc [] -> M.halt l
+            -- V.EvKey V.KEsc [] -> M.halt l
 
---         ev -> M.continue =<< (L.handleListEventVi L.handleListEvent) ev l
---     where
---       nextElement :: Vec.Vector Char -> Char
---       nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
--- appEvent l _ = M.continue l
+            ev -> M.continue appState
+        where
+        nextElement :: Vec.Vector Char -> Char
+        nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+appEvent l _ = M.continue l
 
 -- listDrawElement :: (Show a) => Bool -> a -> Widget ()
 -- listDrawElement sel a =
@@ -132,9 +136,26 @@ data AppState = AppState {
     donelist  :: L.List Name Task
 }
 
+getList :: Int -> AppState -> L.List Name Task
+getList 1 s = muList   s 
+getList 2 s = uList    s 
+getList 3 s = imList   s 
+getList 4 s = nnList   s 
+getList 5 s = donelist s 
+
+
+insertState :: Int -> L.List Name Task -> AppState -> AppState
+insertState 1 l s =  s {muList   = l}
+insertState 2 l s =  s {uList    = l}
+insertState 3 l s =  s {imList   = l}
+insertState 4 l s =  s {nnList   = l}
+insertState 5 l s =  s {donelist = l}
+insertState _ _ s =  s 
+
+
 initialState :: AppState
 initialState = AppState {
-    pointer  =                              0,
+    pointer  = 1,
     imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
