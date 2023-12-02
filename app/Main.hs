@@ -24,7 +24,7 @@ import qualified Data.Vector as Vec
 
 -- >>> imList initialState
 
-drawUI ::  AppState -> [Widget ()]
+drawUI ::  AppState -> [Widget Name]
 drawUI l = [ui]
     where 
         ui =  C.vCenter $ vBox [ C.hCenter (str "Count"),
@@ -43,19 +43,19 @@ drawUI l = [ui]
                                     vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
                                     B.vBorder,
                                     vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
-                                    B.vBorder
+                                    B.vBorder,
                                     vBox [C.center (str "add"), B.hBorder, C.center(str "+")]
                                 ]
                               ]
-        mubox = B.borderWithLabel (str "Imp and Urgent") $
+        mubox = B.borderWithLabel (str "Imp and Urgent") $ vLimit 5$
                 L.renderList listDrawElement True (muList l)
-        ubox = B.borderWithLabel (str "Urgent") $
+        ubox = B.borderWithLabel (str "Urgent") $ vLimit 5 $
                 L.renderList listDrawElement True (uList l)
-        mbox = B.borderWithLabel (str "Imp") $
+        mbox = B.borderWithLabel (str "Imp") $ vLimit 5 $
                 L.renderList listDrawElement True (imList l)
-        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $
+        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $ vLimit 5 $
                 L.renderList listDrawElement True (nnList l)
-        doneBox = B.borderWithLabel (str "Done") $
+        doneBox = B.borderWithLabel (str "Done") $ 
                 L.renderList listDrawElement True (donelist l)
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
@@ -72,14 +72,14 @@ drawUI l = [ui]
     --                           , C.hCenter $ str "Press Esc to exit."
     --                           ]
 
-listDrawElement :: (Show a) => Bool -> a -> Widget ()
+listDrawElement :: (Show a) => Bool -> a -> Widget Name
 listDrawElement sel a =
     let selStr s = if sel
                    then withAttr customAttr (str $ "<" <> s <> ">")
                    else str s
     in C.hCenter $ str "Item " <+> (selStr $ show a)
 
-appEvent :: AppState -> T.BrickEvent () e -> T.EventM () (T.Next (AppState))
+appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent l (T.VtyEvent e) = undefined
 --     case e of
 --         V.EvKey (V.KChar '+') [] ->
@@ -120,24 +120,26 @@ data Task =
  | SUB (Int,Bool, String) 
  deriving (Show)
 
+data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
+  deriving (Eq, Ord, Show)
 
 data AppState = AppState {
     pointer   :: Int,
-    imList    :: L.List Int Task,
-    uList     :: L.List Int Task, 
-    muList    :: L.List Int Task, 
-    nnList    :: L.List Int Task,
-    donelist  :: L.List Int Task
+    imList    :: L.List Name Task,
+    uList     :: L.List Name Task, 
+    muList    :: L.List Name Task, 
+    nnList    :: L.List Name Task,
+    donelist  :: L.List Name Task
 }
 
 initialState :: AppState
 initialState = AppState {
     pointer  =                              0,
-    imList   = L.list 0 (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
-    uList    = L.list 0 (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
-    muList   = L.list 0 (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
-    nnList   = L.list 0 (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
-    donelist = L.list 0 (Vec.empty) 0
+    imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
+    uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
+    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
+    nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
+    donelist = L.list Done (Vec.empty) 0
         }
         
 
@@ -152,15 +154,14 @@ theMap = A.attrMap V.defAttr
     , (customAttr,            fg V.cyan)
     ]
 
-theApp :: M.App AppState e ()
-theApp =
-    M.App { M.appDraw = drawUI
-          , M.appChooseCursor = M.neverShowCursor
-          , M.appHandleEvent = appEvent
-          , M.appStartEvent = return
-          , M.appAttrMap = const theMap
-          }
-
+theApp :: M.App AppState e Name
+theApp = M.App
+    { M.appDraw = drawUI
+    , M.appChooseCursor = M.neverShowCursor
+    , M.appHandleEvent = appEvent
+    , M.appStartEvent = return
+    , M.appAttrMap = const theMap
+    }
 
 
 main :: IO ()
