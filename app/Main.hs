@@ -44,11 +44,19 @@ drawUI l = [ui]
                                     B.vBorder,
                                     vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
                                     B.vBorder
-                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
+                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")]
                                 ]
                               ]
         mubox = B.borderWithLabel (str "Imp and Urgent") $
-                L.renderList listDrawElement True l
+                L.renderList listDrawElement True (muList l)
+        ubox = B.borderWithLabel (str "Urgent") $
+                L.renderList listDrawElement True (uList l)
+        mbox = B.borderWithLabel (str "Imp") $
+                L.renderList listDrawElement True (imList l)
+        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $
+                L.renderList listDrawElement True (nnList l)
+        doneBox = B.borderWithLabel (str "Done") $
+                L.renderList listDrawElement True (donelist l)
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
     --             Nothing -> str "-"
@@ -63,6 +71,13 @@ drawUI l = [ui]
     --                           , C.hCenter $ str "Press +/- to add/remove list elements."
     --                           , C.hCenter $ str "Press Esc to exit."
     --                           ]
+
+listDrawElement :: (Show a) => Bool -> a -> Widget ()
+listDrawElement sel a =
+    let selStr s = if sel
+                   then withAttr customAttr (str $ "<" <> s <> ">")
+                   else str s
+    in C.hCenter $ str "Item " <+> (selStr $ show a)
 
 appEvent :: AppState -> T.BrickEvent () e -> T.EventM () (T.Next (AppState))
 appEvent l (T.VtyEvent e) = undefined
@@ -95,24 +110,6 @@ appEvent l (T.VtyEvent e) = undefined
 -- initialState :: L.List () Char
 -- initialState = L.list () (Vec.fromList ['a','b']) 2
 
-customAttr :: A.AttrName
-customAttr = L.listSelectedAttr <> "custom"
-
-theMap :: A.AttrMap
-theMap = A.attrMap V.defAttr
-    [ (L.listAttr,            V.white `on` V.blue)
-    , (L.listSelectedAttr,    V.blue `on` V.white)
-    , (customAttr,            fg V.cyan)
-    ]
-
-theApp :: M.App AppState e ()
-theApp =
-    M.App { M.appDraw = drawUI
-          , M.appChooseCursor = M.neverShowCursor
-          , M.appHandleEvent = appEvent
-          , M.appStartEvent = return
-          , M.appAttrMap = const theMap
-          }
 type L1Task = (Int, String) --()
 
 data Task = 
