@@ -21,54 +21,54 @@ import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>))
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 
-drawUI :: (Show a) => L.List () a -> [Widget ()]
-drawUI l = [ui]
-    where
-        label = str "Item " <+> cur <+> str " of " <+> total
-        cur = case l^.(L.listSelectedL) of
-                Nothing -> str "-"
-                Just i  -> str (show (i + 1))
-        total = str $ show $ Vec.length $ l^.(L.listElementsL)
-        box = B.borderWithLabel label $
-              hLimit 25 $
-              vLimit 15 $
-              L.renderList listDrawElement True l
-        ui = C.vCenter $ vBox [ C.hCenter box
-                              , str " "
-                              , C.hCenter $ str "Press +/- to add/remove list elements."
-                              , C.hCenter $ str "Press Esc to exit."
-                              ]
+drawUI ::  AppState -> [Widget ()]
+drawUI l = undefined
+    -- where
+    --     label = str "Item " <+> cur <+> str " of " <+> total
+    --     cur = case l^.(L.listSelectedL) of
+    --             Nothing -> str "-"
+    --             Just i  -> str (show (i + 1))
+    --     total = str $ show $ Vec.length $ l^.(L.listElementsL)
+    --     box = B.borderWithLabel label $
+    --           hLimit 25 $
+    --           vLimit 15 $
+    --           L.renderList listDrawElement False l
+    --     ui = C.vCenter $ vBox [ C.hCenter box
+    --                           , str " "
+    --                           , C.hCenter $ str "Press +/- to add/remove list elements."
+    --                           , C.hCenter $ str "Press Esc to exit."
+    --                           ]
 
-appEvent :: L.List () Char -> T.BrickEvent () e -> T.EventM () (T.Next (L.List () Char))
-appEvent l (T.VtyEvent e) =
-    case e of
-        V.EvKey (V.KChar '+') [] ->
-            let el = nextElement (L.listElements l)
-                pos = Vec.length $ l^.(L.listElementsL)
-            in M.continue $ L.listInsert pos el $ L.listInsert pos el l
+appEvent :: AppState -> T.BrickEvent () e -> T.EventM () (T.Next (AppState))
+appEvent l (T.VtyEvent e) = undefined
+--     case e of
+--         V.EvKey (V.KChar '+') [] ->
+--             let el = nextElement (L.listElements l)
+--                 pos = Vec.length $ l^.(L.listElementsL)
+--             in M.continue $ L.listInsert pos el $ L.listInsert pos el l
 
-        V.EvKey (V.KChar '-') [] ->
-            case l^.(L.listSelectedL) of
-                Nothing -> M.continue l
-                Just i  -> M.continue $ L.listRemove i l
+--         V.EvKey (V.KChar '-') [] ->
+--             case l^.(L.listSelectedL) of
+--                 Nothing -> M.continue l
+--                 Just i  -> M.continue $ L.listRemove i l
 
-        V.EvKey V.KEsc [] -> M.halt l
+--         V.EvKey V.KEsc [] -> M.halt l
 
-        ev -> M.continue =<< (L.handleListEventVi L.handleListEvent) ev l
-    where
-      nextElement :: Vec.Vector Char -> Char
-      nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
-appEvent l _ = M.continue l
+--         ev -> M.continue =<< (L.handleListEventVi L.handleListEvent) ev l
+--     where
+--       nextElement :: Vec.Vector Char -> Char
+--       nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+-- appEvent l _ = M.continue l
 
-listDrawElement :: (Show a) => Bool -> a -> Widget ()
-listDrawElement sel a =
-    let selStr s = if sel
-                   then withAttr customAttr (str $ "<" <> s <> ">")
-                   else str s
-    in C.hCenter $ str "Item " <+> (selStr $ show a)
+-- listDrawElement :: (Show a) => Bool -> a -> Widget ()
+-- listDrawElement sel a =
+--     let selStr s = if sel
+--                    then withAttr customAttr (str $ "<" <> s <> ">")
+--                    else str s
+--     in C.hCenter $ str "Item " <+> (selStr $ show a)
 
-initialState :: L.List () Char
-initialState = L.list () (Vec.fromList ['a','b','c']) 1
+-- initialState :: L.List () Char
+-- initialState = L.list () (Vec.fromList ['a','b']) 2
 
 customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
@@ -80,14 +80,45 @@ theMap = A.attrMap V.defAttr
     , (customAttr,            fg V.cyan)
     ]
 
-theApp :: M.App (L.List () Char) e ()
+theApp :: M.App AppState e ()
 theApp =
     M.App { M.appDraw = drawUI
-          , M.appChooseCursor = M.showFirstCursor
+          , M.appChooseCursor = M.neverShowCursor
           , M.appHandleEvent = appEvent
           , M.appStartEvent = return
           , M.appAttrMap = const theMap
           }
+type L1Task = ((Int, Int), String) 
+
+data Task = 
+ MT L1Task
+ | UT L1Task
+ | MUT L1Task
+ | NNT L1Task
+ | SUB ((Int,Int),Bool, String) 
+ deriving (Show)
+
+
+data AppState = AppState {
+    pointer   :: Int,
+    imList    :: L.List Int Task,
+    uList     :: L.List Int Task, 
+    muList    :: L.List Int Task, 
+    nnList    :: L.List Int Task,
+    donelist  :: L.List Int Task
+}
+
+initialState :: AppState
+initialState = AppState {
+    pointer  =                      0,
+    imList   = L.list 0 (Vec.empty) 0,
+    uList    = L.list 0 (Vec.empty) 0,
+    muList   = L.list 0 (Vec.empty) 0,
+    nnList   = L.list 0 (Vec.empty) 0,
+    donelist = L.list 0 (Vec.empty) 0
+        }
+
+
 
 main :: IO ()
 main = void $ M.defaultMain theApp initialState
