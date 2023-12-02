@@ -22,8 +22,11 @@ import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 
 drawUI ::  AppState -> [Widget ()]
-drawUI l = undefined
-    -- where
+drawUI l = [ui]
+    where 
+        ui =  C.vCenter $ vBox [ C.hCenter (str "Count"),
+                                B.hBorder,
+                              ]
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
     --             Nothing -> str "-"
@@ -88,14 +91,14 @@ theApp =
           , M.appStartEvent = return
           , M.appAttrMap = const theMap
           }
-type L1Task = ((Int, Int), String) 
+type L1Task = (Int, String) --()
 
 data Task = 
- MT L1Task
+   IMT L1Task
  | UT L1Task
  | MUT L1Task
  | NNT L1Task
- | SUB ((Int,Int),Bool, String) 
+ | SUB (Int,Bool, String) 
  deriving (Show)
 
 
@@ -110,13 +113,32 @@ data AppState = AppState {
 
 initialState :: AppState
 initialState = AppState {
-    pointer  =                      0,
-    imList   = L.list 0 (Vec.empty) 0,
-    uList    = L.list 0 (Vec.empty) 0,
-    muList   = L.list 0 (Vec.empty) 0,
-    nnList   = L.list 0 (Vec.empty) 0,
+    pointer  =                              0,
+    imList   = L.list 0 (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
+    uList    = L.list 0 (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
+    muList   = L.list 0 (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
+    nnList   = L.list 0 (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list 0 (Vec.empty) 0
         }
+
+customAttr :: A.AttrName
+customAttr = L.listSelectedAttr <> "custom"
+
+theMap :: A.AttrMap
+theMap = A.attrMap V.defAttr
+    [ (L.listAttr,            V.white `on` V.blue)
+    , (L.listSelectedAttr,    V.blue `on` V.white)
+    , (customAttr,            fg V.cyan)
+    ]
+
+theApp :: M.App AppState e ()
+theApp =
+    M.App { M.appDraw = drawUI
+          , M.appChooseCursor = M.neverShowCursor
+          , M.appHandleEvent = appEvent
+          , M.appStartEvent = return
+          , M.appAttrMap = const theMap
+          }
 
 
 
