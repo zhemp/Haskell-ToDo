@@ -17,16 +17,38 @@ import qualified Brick.Types as T
 import Brick.Util (fg, on)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
-import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>))
+import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), hBox)
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
+
+
+-- >>> imList initialState
 
 drawUI ::  AppState -> [Widget ()]
 drawUI l = [ui]
     where 
         ui =  C.vCenter $ vBox [ C.hCenter (str "Count"),
                                 B.hBorder,
+                                hBox [vBox [mubox,
+                                            ubox,
+                                            mbox,
+                                            nnbox
+                                            ],
+                                        doneBox
+                                    ],
+                                B.hBorder,
+                                hBox[
+                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
+                                    B.vBorder,
+                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
+                                    B.vBorder,
+                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
+                                    B.vBorder
+                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
+                                ]
                               ]
+        mubox = B.borderWithLabel (str "Imp and Urgent") $
+                L.renderList listDrawElement True l
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
     --             Nothing -> str "-"
@@ -120,6 +142,8 @@ initialState = AppState {
     nnList   = L.list 0 (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list 0 (Vec.empty) 0
         }
+        
+
 
 customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
