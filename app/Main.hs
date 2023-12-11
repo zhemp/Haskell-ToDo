@@ -91,12 +91,16 @@ appEvent appState (T.VtyEvent e) =
                     pos = Vec.length $ l^.(L.listElementsL)
                 in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
             V.EvKey (V.KDown) [] ->
-                let Just pos = l^.(L.listSelectedL)
-                    len = (getLen l - 1)
-                in 
-                if pos == len   
-                    then M.continue (appState {pointer = (index +1)})
-                else M.continue $ insertState index (L.listMoveBy 1 l) appState 
+                case l^.(L.listSelectedL) of
+                    Just pos ->
+                        let len = getLen l - 1
+                        in if pos == len
+                              then if index /= 4  
+                                then M.continue (appState {pointer = index + 1}) 
+                                else M.continue appState   
+                            else M.continue $ insertState index (L.listMoveBy 1 l) appState
+                    Nothing ->
+                            M.continue appState 
             V.EvKey (V.KUp) [] ->
                 M.continue $ insertState index (L.listMoveBy (-1) l) appState
             -- V.EvKey (V.KChar '-') [] ->
@@ -167,7 +171,7 @@ insertState _ _ s =  s
 
 initialState :: AppState
 initialState = AppState {
-    pointer  = 2,
+    pointer  = 1,
     status   = 0,
     imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
