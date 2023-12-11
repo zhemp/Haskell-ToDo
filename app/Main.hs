@@ -142,14 +142,17 @@ appEvent l _ = M.continue l
 -- initialState :: L.List () Char
 -- initialState = L.list () (Vec.fromList ['a','b']) 2
 
+-- (the id of the current task, the content)
 type L1Task = (Int, String) --()
 
+
+-- (SUB  (represent the id of its main task,  Bool shows whether the subtask has been done, String is whether it has been done))
 data Task = 
    IMT L1Task
- | UT L1Task
+ | UT  L1Task
  | MUT L1Task
  | NNT L1Task
- | SUB (Int,Bool, String) 
+ | SUB (Int, Bool, String) 
  deriving (Show)
 
 data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
@@ -167,6 +170,7 @@ data AppState = AppState {
 
 
 
+--  THis function takes the pointer (Int) and return the corresponding list
 getList :: Int -> AppState -> L.List Name Task
 getList 1 s = muList   s 
 getList 2 s = uList    s 
@@ -175,7 +179,7 @@ getList 4 s = nnList   s
 getList 5 s = donelist s 
 
 
-
+--  THis function takes index and list and update the corresponding list in appstate
 insertState :: Int -> L.List Name Task -> AppState -> AppState
 insertState 1 l s =  s {muList   = l}
 insertState 2 l s =  s {uList    = l}
