@@ -90,6 +90,8 @@ appEvent appState (T.VtyEvent e) =
                 let el = IMT (0, "this is my new String")
                     pos = Vec.length $ l^.(L.listElementsL)
                 in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
+
+                
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
                     Just pos ->
@@ -101,8 +103,17 @@ appEvent appState (T.VtyEvent e) =
                             else M.continue $ insertState index (L.listMoveBy 1 l) appState
                     Nothing ->
                             M.continue appState 
+
             V.EvKey (V.KUp) [] ->
-                M.continue $ insertState index (L.listMoveBy (-1) l) appState
+                case l^.(L.listSelectedL) of
+                    Just pos ->
+                        if pos == 0
+                            then if index /= 1
+                                        then M.continue (appState {pointer = index - 1})
+                                        else M.continue appState
+                            else M.continue $ insertState index (L.listMoveBy (-1) l) appState
+                    Nothing ->
+                        M.continue appState
             -- V.EvKey (V.KChar '-') [] ->
             --     case l^.(L.listSelectedL) of
             --         Nothing -> M.continue l
