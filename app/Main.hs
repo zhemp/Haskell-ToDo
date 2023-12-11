@@ -65,13 +65,13 @@ drawUI appState = [ui]
                                     hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
                                 ]
                               ]
-        mubox = B.borderWithLabel (str "Imp and Urgent") $ vLimit 5$
+        mubox = B.borderWithLabel (str "Imp and Urgent") $
                 L.renderList listDrawElement (focus == 1) (muList appState)
-        ubox = B.borderWithLabel (str "Urgent") $ vLimit 5 $
+        ubox = B.borderWithLabel (str "Urgent") $
                 L.renderList listDrawElement (focus == 2) (uList appState)
-        mbox = B.borderWithLabel (str "Imp") $ vLimit 5 $
+        mbox = B.borderWithLabel (str "Imp") $
                 L.renderList listDrawElement (focus == 3) (imList appState)
-        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $ vLimit 5 $
+        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $
                 L.renderList listDrawElement (focus == 4) (nnList appState)
         doneBox = B.borderWithLabel (str "Done") $ 
                 L.renderList listDrawElement (focus == 5) (donelist appState)
@@ -91,11 +91,18 @@ drawUI appState = [ui]
     --                           ]
 
 listDrawElement :: (Show a) => Bool -> a -> Widget Name
-listDrawElement sel a =
-    let selStr s = if sel
-                   then (str $ "<" <> s <> ">")
-                   else str s
-    in C.hCenter $ selStr $ show a
+listDrawElement _ a =
+    C.hCenter $ str (show a)
+
+-- listDrawElement :: Bool -> Task -> Widget Name  replace he current draw with this
+-- listDrawElement _ task =
+--         case task of
+--         SUB (_, done, content) -> if done then C.hCenter (str "X " <+> str content)
+--                                             else C.hCenter (str content)
+--         IMT (_, content) -> C.hCenter $ str content
+--         UT  (_, content) -> C.hCenter $ str content
+--         MUT (_, content) -> C.hCenter $ str content
+--         NNT (_, content) -> C.hCenter $ str content
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent appState (T.VtyEvent e) =  
