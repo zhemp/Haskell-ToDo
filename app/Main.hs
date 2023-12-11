@@ -166,7 +166,8 @@ data AppState = AppState {
     uList     :: L.List Name Task, 
     muList    :: L.List Name Task, 
     nnList    :: L.List Name Task,
-    donelist  :: L.List Name Task
+    donelist  :: L.List Name Task,
+    curMaxId  :: [Int]
 }
 
 
@@ -198,12 +199,16 @@ initialState = AppState {
     uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
     nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
-    donelist = L.list Done (Vec.empty) 0
+    donelist = L.list Done (Vec.empty) 0,
+    curMaxId = [2,2,2,2]
         }
 
 getLen :: L.List Name Task -> Int
 getLen = length
 
+--  given pointer index,  state  return the maxId in the list that index pointed to
+getMaxId ::  Int -> AppState -> Int
+getMaxId index s = curMaxId s !! (index -1 )
 
 customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
