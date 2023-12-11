@@ -91,15 +91,14 @@ appEvent appState (T.VtyEvent e) =
                     pos = Vec.length $ l^.(L.listElementsL)
                 in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
 
-                
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
                     Just pos ->
                         let len = getLen l - 1
                         in if pos == len
-                              then if index /= 4  
+                              then if index /= 4
                                 then M.continue (appState {pointer = index + 1}) 
-                                else M.continue appState   
+                                else M.continue appState
                             else M.continue $ insertState index (L.listMoveBy 1 l) appState
                     Nothing ->
                             M.continue appState 
@@ -114,6 +113,12 @@ appEvent appState (T.VtyEvent e) =
                             else M.continue $ insertState index (L.listMoveBy (-1) l) appState
                     Nothing ->
                         M.continue appState
+            
+            V.EvKey (V.KRight) [] ->
+                M.continue (appState {pointer = 5})
+    
+            V.EvKey (V.KLeft) [] ->
+                M.continue (appState {pointer = 1})
             -- V.EvKey (V.KChar '-') [] ->
             --     case l^.(L.listSelectedL) of
             --         Nothing -> M.continue l
@@ -121,7 +126,7 @@ appEvent appState (T.VtyEvent e) =
 
             V.EvKey V.KEsc [] -> M.halt appState
 
-            ev -> M.continue appState
+            otherEvent -> M.continue appState
         where
             nextElement :: Vec.Vector Char -> Char
             nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
@@ -200,8 +205,7 @@ customAttr = L.listSelectedAttr <> "custom"
 
 theMap :: A.AttrMap
 theMap = A.attrMap V.defAttr
-    [ (L.listAttr,            V.white `on` V.blue)
-    , (L.listSelectedAttr,    V.blue `on` V.white)
+    [ (L.listSelectedAttr,    V.blue `on` V.white)
     , (customAttr,            fg V.cyan)
     ]
 
