@@ -129,7 +129,7 @@ appEvent appState (T.VtyEvent e) =
                     Just pos ->
                         let len = getLen l - 1
                         in if pos == len
-                              then if index /= 4
+                              then if index /= 4 && index /= 5
                                 then M.continue (appState {pointer = index + 1}) 
                                 else M.continue appState
                             else M.continue $ insertState index (L.listMoveBy 1 l) appState
@@ -140,7 +140,7 @@ appEvent appState (T.VtyEvent e) =
                 case l^.(L.listSelectedL) of
                     Just pos ->
                         if pos == 0
-                            then if index /= 1
+                            then if index /= 1 && index /= 5
                                         then M.continue (appState {pointer = index - 1})
                                         else M.continue appState
                             else M.continue $ insertState index (L.listMoveBy (-1) l) appState
