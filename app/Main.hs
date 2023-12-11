@@ -233,8 +233,9 @@ getMaxId index s = curMaxId s !! (index -1 )
 
 
 -- given index, appstate, and new maxId   return a updated appstate
+-- here the reason why we decrease the index by 1 is because the gap between the index of 5 task list and index of general list
 setMaxId :: Int -> AppState -> Int -> AppState
-setMaxId index s newMaxId = s { curMaxId = udList (curMaxId s) index newMaxId}
+setMaxId index s newMaxId = s { curMaxId = udList (curMaxId s) (index-1) newMaxId}
 
 
 udList :: (Eq a1, Num a1) => [a2] -> a1 -> a2 -> [a2]
