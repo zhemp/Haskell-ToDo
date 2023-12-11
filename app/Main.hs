@@ -26,8 +26,9 @@ import qualified Data.Vector as Vec
 -- >>> imList initialState
 
 drawUI ::  AppState -> [Widget Name]
-drawUI l = [ui]
+drawUI appState = [ui]
     where 
+        focus = pointer appState
         ui =  C.vCenter $ vBox [ C.hCenter (str "Count"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
@@ -49,15 +50,15 @@ drawUI l = [ui]
                                 ]
                               ]
         mubox = B.borderWithLabel (str "Imp and Urgent") $ vLimit 5$
-                L.renderList listDrawElement True (muList l)
+                L.renderList listDrawElement (focus == 1) (muList appState)
         ubox = B.borderWithLabel (str "Urgent") $ vLimit 5 $
-                L.renderList listDrawElement True (uList l)
+                L.renderList listDrawElement (focus == 2) (uList appState)
         mbox = B.borderWithLabel (str "Imp") $ vLimit 5 $
-                L.renderList listDrawElement True (imList l)
+                L.renderList listDrawElement (focus == 3) (imList appState)
         nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $ vLimit 5 $
-                L.renderList listDrawElement True (nnList l)
+                L.renderList listDrawElement (focus == 4) (nnList appState)
         doneBox = B.borderWithLabel (str "Done") $ 
-                L.renderList listDrawElement True (donelist l)
+                L.renderList listDrawElement (focus == 5) (donelist appState)
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
     --             Nothing -> str "-"
@@ -76,9 +77,9 @@ drawUI l = [ui]
 listDrawElement :: (Show a) => Bool -> a -> Widget Name
 listDrawElement sel a =
     let selStr s = if sel
-                   then withAttr customAttr (str $ "<" <> s <> ">")
+                   then (str $ "<" <> s <> ">")
                    else str s
-    in C.hCenter $ str "Item " <+> (selStr $ show a)
+    in C.hCenter $ selStr $ show a
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent appState (T.VtyEvent e) =  
@@ -209,8 +210,8 @@ customAttr = L.listSelectedAttr <> "custom"
 
 theMap :: A.AttrMap
 theMap = A.attrMap V.defAttr
-    [ (L.listSelectedAttr,    V.blue `on` V.white)
-    , (customAttr,            fg V.cyan)
+    [ (L.listSelectedFocusedAttr, V.black `on` V.white)
+    ,(L.listAttr,    V.white `on` V.black)
     ]
 
 theApp :: M.App AppState e Name
