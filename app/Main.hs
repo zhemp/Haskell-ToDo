@@ -24,12 +24,23 @@ import qualified Data.Vector as Vec
 
 
 -- >>> imList initialState
+isSub :: Task -> Bool -- tell whether a task is a subtask
+isSub (SUB _) = True
+isSub _       = False
 
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
     where 
-        focus = pointer appState
-        ui =  C.vCenter $ vBox [ C.hCenter (str "Count"),
+        focus = pointer appState --get the current focused list id
+
+        total_mu = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (muList appState)) 
+        total_u = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (uList appState)) 
+        total_m = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (imList appState)) 
+        total_nn = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (nnList appState)) 
+        undone_total = str $ show $ (total_mu + total_u + total_m + total_nn)
+        total_done = str $ show $ Vec.length $ Vec.filter (not . isSub) ((L.listElements) (donelist appState))   --get the current count of tasks
+
+        ui =  C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> total_done <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
                                             ubox,
