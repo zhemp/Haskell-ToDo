@@ -50,14 +50,19 @@ drawUI appState = [ui]
                                         doneBox
                                     ],
                                 B.hBorder,
-                                hBox[
-                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
-                                    B.vBorder,
-                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
-                                    B.vBorder,
-                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")],
-                                    B.vBorder,
-                                    vBox [C.center (str "add"), B.hBorder, C.center(str "+")]
+                                -- hBox[
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
+                                -- ]
+                                vLimit 3 $ vBox [
+                                    hBox[C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add")],
+                                    B.hBorder,
+                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
                                 ]
                               ]
         mubox = B.borderWithLabel (str "Imp and Urgent") $ vLimit 5$
