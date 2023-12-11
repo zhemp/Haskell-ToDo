@@ -38,9 +38,9 @@ drawUI appState = [ui]
         total_m = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (imList appState)) 
         total_nn = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (nnList appState)) 
         undone_total = str $ show $ (total_mu + total_u + total_m + total_nn)
-        total_done = str $ show $ Vec.length $ Vec.filter (not . isSub) ((L.listElements) (donelist appState))   --get the current count of tasks
+        total_done = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (donelist appState))   --get the current count of tasks
 
-        ui =  C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> total_done <+> str " done"),
+        ui =  C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
                                             ubox,
@@ -65,15 +65,15 @@ drawUI appState = [ui]
                                     hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
                                 ]
                               ]
-        mubox = B.borderWithLabel (str "Imp and Urgent") $
+        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " tasks")) $
                 L.renderList listDrawElement (focus == 1) (muList appState)
-        ubox = B.borderWithLabel (str "Urgent") $
+        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " tasks")) $
                 L.renderList listDrawElement (focus == 2) (uList appState)
-        mbox = B.borderWithLabel (str "Imp") $
+        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " tasks")) $
                 L.renderList listDrawElement (focus == 3) (imList appState)
-        nnbox = B.borderWithLabel (str "Not Imp nor Urgent") $
+        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " tasks")) $
                 L.renderList listDrawElement (focus == 4) (nnList appState)
-        doneBox = B.borderWithLabel (str "Done") $ 
+        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
                 L.renderList listDrawElement (focus == 5) (donelist appState)
     --     label = str "Item " <+> cur <+> str " of " <+> total
     --     cur = case l^.(L.listSelectedL) of
