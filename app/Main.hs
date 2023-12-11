@@ -113,7 +113,7 @@ appEvent appState (T.VtyEvent e) =
             V.EvKey (V.KChar '+') [] ->
                 let 
                     maxId = getMaxId index appState
-                    el = IMT (maxId+1, "this is my new String")
+                    el = createMainTask index (maxId+1) "this is my new String"
                     in 
                     case l^.(L.listSelectedL) of
                         Just pos ->
@@ -222,6 +222,15 @@ insertState 4 l s =  s {nnList   = l}
 insertState 5 l s =  s {donelist = l}
 insertState _ _ s =  s 
 
+-- Input: index, maxId, text, and output Task
+createMainTask :: Int -> Int -> String -> Task
+createMainTask = go
+    where 
+        go 1 maxId s = MUT (maxId,s)
+        go 2 maxId s = UT  (maxId,s)
+        go 3 maxId s = IMT (maxId,s)
+        go 4 maxId s = NNT (maxId,s)
+        go _ maxId s = MUT (maxId,s)
 
 initialState :: AppState
 initialState = AppState {
