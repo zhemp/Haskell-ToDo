@@ -90,18 +90,26 @@ appEvent appState (T.VtyEvent e) =
                 let el = IMT (0, "this is my new String")
                     pos = Vec.length $ l^.(L.listElementsL)
                 in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
-
+            V.EvKey (V.KDown) [] ->
+                let Just pos = l^.(L.listSelectedL)
+                    len = (getLen l - 1)
+                in 
+                if pos == len   
+                    then M.continue (appState {pointer = (index +1)})
+                else M.continue $ insertState index (L.listMoveBy 1 l) appState 
+            V.EvKey (V.KUp) [] ->
+                M.continue $ insertState index (L.listMoveBy (-1) l) appState
             -- V.EvKey (V.KChar '-') [] ->
             --     case l^.(L.listSelectedL) of
             --         Nothing -> M.continue l
             --         Just i  -> M.continue $ L.listRemove i l
 
-            -- V.EvKey V.KEsc [] -> M.halt l
+            V.EvKey V.KEsc [] -> M.halt appState
 
             ev -> M.continue appState
         where
-        nextElement :: Vec.Vector Char -> Char
-        nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+            nextElement :: Vec.Vector Char -> Char
+            nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
 appEvent l _ = M.continue l
 
 -- listDrawElement :: (Show a) => Bool -> a -> Widget ()
@@ -129,6 +137,7 @@ data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
 
 data AppState = AppState {
     pointer   :: Int,
+    status    :: Int,
     imList    :: L.List Name Task,
     uList     :: L.List Name Task, 
     muList    :: L.List Name Task, 
@@ -136,12 +145,15 @@ data AppState = AppState {
     donelist  :: L.List Name Task
 }
 
+
+
 getList :: Int -> AppState -> L.List Name Task
 getList 1 s = muList   s 
 getList 2 s = uList    s 
 getList 3 s = imList   s 
 getList 4 s = nnList   s 
 getList 5 s = donelist s 
+
 
 
 insertState :: Int -> L.List Name Task -> AppState -> AppState
@@ -155,14 +167,17 @@ insertState _ _ s =  s
 
 initialState :: AppState
 initialState = AppState {
-    pointer  = 1,
+    pointer  = 2,
+    status   = 0,
     imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
     nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list Done (Vec.empty) 0
         }
-        
+
+getLen :: L.List Name Task -> Int
+getLen = length
 
 
 customAttr :: A.AttrName
@@ -183,6 +198,8 @@ theApp = M.App
     , M.appStartEvent = return
     , M.appAttrMap = const theMap
     }
+
+
 
 
 main :: IO ()
