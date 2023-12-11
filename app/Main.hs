@@ -88,9 +88,18 @@ appEvent appState (T.VtyEvent e) =
     in 
         case e of
             V.EvKey (V.KChar '+') [] ->
-                let el = IMT (0, "this is my new String")
-                    pos = Vec.length $ l^.(L.listElementsL)
-                in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
+                let 
+                    maxId = getMaxId index appState
+                    el = IMT (maxId+1, "this is my new String")
+                    in 
+                    case l^.(L.listSelectedL) of
+                        Just pos ->
+                                M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                        Nothing ->
+                                M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+                --     let el = IMT (0, "this is my new String")
+                --         pos = Vec.length $ l^.(L.listElementsL)
+                --     in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
 
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
@@ -200,7 +209,7 @@ initialState = AppState {
     muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
     nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list Done (Vec.empty) 0,
-    curMaxId = [2,2,2,2]
+    curMaxId = [2,2,2,2,0]
         }
 
 getLen :: L.List Name Task -> Int
@@ -209,6 +218,18 @@ getLen = length
 --  given pointer index,  state  return the maxId in the list that index pointed to
 getMaxId ::  Int -> AppState -> Int
 getMaxId index s = curMaxId s !! (index -1 )
+
+
+
+-- given index, appstate, and new maxId   return a updated appstate
+setMaxId :: Int -> AppState -> Int -> AppState
+setMaxId index s newMaxId = s { curMaxId = udList (curMaxId s) index newMaxId}
+
+
+udList :: (Eq a1, Num a1) => [a2] -> a1 -> a2 -> [a2]
+udList (h:t) 0 v = v:t
+udList (h:t) id v = h: udList t (id-1) v
+udList _ _ v = [v]
 
 customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
