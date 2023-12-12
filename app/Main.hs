@@ -130,7 +130,7 @@ appEvent appState (T.VtyEvent e) =
                     -- try to visualize the inputField when receiving input, using ListInsert
                     let 
                         el = createMainTask index maxId (input ++ [c])
-                        maxId = getMaxId index appState
+                        maxId = getMaxId index appStatef
                     in
                         case l^.(L.listSelectedL) of
                             Just pos ->
@@ -230,7 +230,7 @@ appEvent appState (T.VtyEvent e) =
 
                     -- any other key pressed, we will not handle it
                     _ -> M.continue appState
-                    
+
                 -- where
                 --     nextElement :: Vec.Vector Char -> Char
                 --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
