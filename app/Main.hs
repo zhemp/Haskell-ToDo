@@ -193,7 +193,7 @@ appEvent appState (T.VtyEvent e) =
                                     in
                                         M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) appState  
 
-                    V.EvKey (V.KChar 'r') [] ->
+                    V.EvKey (V.KChar '5') [] ->
                         case l^.(L.listSelectedL) of
                             Nothing -> M.continue appState
                             Just pos  -> 
@@ -204,10 +204,19 @@ appEvent appState (T.VtyEvent e) =
                                     -- updatedDoneList = L.listInsert 0 doneTask doneL
                                     idx = getTaskId doneTask
                                     
+                                    
                                 in
                                     if isSub doneTask || index < 5 then M.continue $ appState
-                                    else undefined
+                                    else let (tasks, updateDoneL) = getDelsTandNewL doneL idx 
+                                            -- modify all the tasks in the given list as undo
+                                             toDoTasks = map setTaskToDo tasks
+                                             pointedListIndex = getPriority doneTask
+                                             updatedTodoL = insertGL toDoTasks $ getList pointedListIndex appState
+                                         in 
+                                            M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL appState
+                                            
                     
+
                     V.EvKey (V.KChar '4') [] ->
                         case l^.(L.listSelectedL) of
                             Nothing -> M.continue appState
@@ -230,7 +239,6 @@ appEvent appState (T.VtyEvent e) =
                                          in
                                             M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
                                             
-
 
 
 
@@ -317,8 +325,17 @@ data AppState = AppState {
     inputField :: Maybe String  --  used to store the input string
 }
 
+
+-- replace the tasks at the appointed positon of the given list using the given task
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
+
+
+getPriority :: Task -> Int
+getPriority (MUT _) = 1
+getPriority (UT  _) = 2
+getPriority (IMT _) = 3
+getPriority (NNT _) = 4
 
 
 -- this function takes a list of tasks and a id then return the length of the current task
@@ -396,6 +413,12 @@ setTaskDone :: Task -> Task
 setTaskDone = go 
     where go (SUB (n,_,s)) = SUB (n,True,s)
           go  other        = other
+
+setTaskToDo :: Task -> Task 
+setTaskToDo = go 
+    where go (SUB (n,_,s)) = SUB (n,False,s)
+          go  other        = other
+
 getTaskId :: Task -> Int
 getTaskId = go 
     where 
