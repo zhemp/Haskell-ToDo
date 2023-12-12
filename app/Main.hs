@@ -5,9 +5,9 @@ module Main where
 
 import Control.Monad (void)
 import Data.Maybe (fromMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
+-- #if !(MIN_VERSION_base(4,11,0))
+-- import Data.Monoid
+-- #endif
 import qualified Graphics.Vty as V
 import Lens.Micro ((^.))
 
@@ -107,7 +107,9 @@ drawUI appState = [ui]
                                     B.hBorder,
                                     hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "Finish")]
                                 ]
-                                , str input
+                                , case input of 
+                                    "" -> str "Please input your task content!"
+                                    _ -> str input
                                 ]
             
 
