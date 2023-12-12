@@ -21,25 +21,42 @@ import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), (<=>),hBox, fill)
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
+import qualified Data.Foldable as Vector
+import qualified Data.IMap as Vector
+import qualified Data.Foldable as V
 
 
-isSub :: Task -> Bool -- tell whether a task is a subtask
-isSub (SUB _) = True
-isSub _       = False
+
 
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
     where 
         focus = pointer appState --get the current focused list id
 
-        total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState)) 
+        total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState))
+        total_mu_sub = Vec.length $ Vec.filter isSub (L.listElements (muList appState))
         total_u = Vec.length $ Vec.filter (not . isSub) (L.listElements (uList appState)) 
+        total_u_sub = Vec.length $ Vec.filter isSub (L.listElements (uList appState)) 
         total_m = Vec.length $ Vec.filter (not . isSub) (L.listElements (imList appState)) 
+        total_m_sub = Vec.length $ Vec.filter isSub (L.listElements (imList appState)) 
         total_nn = Vec.length $ Vec.filter (not . isSub) (L.listElements (nnList appState)) 
+        total_nn_sub = Vec.length $ Vec.filter isSub (L.listElements (nnList appState)) 
         undone_total = str $ show (total_mu + total_u + total_m + total_nn)
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
-        ui =  C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
+        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 1) (muList appState)
+        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 2) (uList appState)
+        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 3) (imList appState)
+        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 4) (nnList appState)
+        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
+                L.renderList listDrawElement (focus == 5) (donelist appState)
+
+        ui = case inputField appState of
+            Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
                 C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
@@ -60,35 +77,39 @@ drawUI appState = [ui]
                                 --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
                                 -- ]
                                 vLimit 3 $ vBox [
-                                    hBox[C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add")],
+                                    hBox[C.center (str "Add Main Task"), B.vBorder, C.center (str "Add Sub Task"), B.vBorder, C.center (str "Delete"), B.vBorder, C.center (str "Mark as Done"), B.vBorder, C.center (str "Mark as UDone") ],
                                     B.hBorder,
-                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
+                                    hBox[C.center (str "1"), B.vBorder, C.center (str "2"), B.vBorder, C.center (str "-"), B.vBorder, C.center (str "4"), B.vBorder, C.center (str "5")]
                                 ]
-                              ]
-        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " tasks")) $
-                L.renderList listDrawElement (focus == 1) (muList appState)
-        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " tasks")) $
-                L.renderList listDrawElement (focus == 2) (uList appState)
-        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " tasks")) $
-                L.renderList listDrawElement (focus == 3) (imList appState)
-        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " tasks")) $
-                L.renderList listDrawElement (focus == 4) (nnList appState)
-        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
-                L.renderList listDrawElement (focus == 5) (donelist appState)
-    --     label = str "Item " <+> cur <+> str " of " <+> total
-    --     cur = case l^.(L.listSelectedL) of
-    --             Nothing -> str "-"
-    --             Just i  -> str (show (i + 1))
-    --     total = str $ show $ Vec.length $ l^.(L.listElementsL)
-    --     box = B.borderWithLabel label $
-    --           hLimit 25 $
-    --           vLimit 15 $
-    --           L.renderList listDrawElement False l
-    --     ui = C.vCenter $ vBox [ C.hCenter box
-    --                           , str " "
-    --                           , C.hCenter $ str "Press +/- to add/remove list elements."
-    --                           , C.hCenter $ str "Press Esc to exit."
-    --                           ]
+                                ]
+            Just input -> C.hCenter $ C.vCenter $ hLimit 131 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
+                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
+                                B.hBorder,
+                                hBox [vBox [mubox,
+                                            ubox,
+                                            mbox,
+                                            nnbox
+                                            ],
+                                        doneBox
+                                    ],
+                                B.hBorder,
+                                -- hBox[
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
+                                -- ]
+                                vLimit 3 $ vBox [
+                                    hBox[C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "Enter")],
+                                    B.hBorder,
+                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "Finish")]
+                                ]
+                                , str input
+                                ]
+            
 
 listDrawElement :: Bool -> Task -> Widget Name
 listDrawElement _ task =
@@ -105,6 +126,8 @@ listDrawElement _ task =
 --         MUT (_, content) -> str content
 --         NNT (_, content) -> str content
 
+
+
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent appState (T.VtyEvent e) = 
     case inputField appState of
@@ -112,16 +135,7 @@ appEvent appState (T.VtyEvent e) =
         Just input -> 
              case e of
                 V.EvKey V.KEnter [] -> 
-                    -- -- complete the input, and add it to the list
-                    -- let 
-                    --     el = createMainTask index (maxId+1) input 
-                    --     maxId = getMaxId index appState
-                    -- in
-                    --     case l^.(L.listSelectedL) of
-                    --         Just pos ->
-                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
-                    --         Nothing ->
-                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+
                     M.continue $ appState { inputField = Nothing }
                 
                 V.EvKey (V.KChar c) [] ->
@@ -144,51 +158,94 @@ appEvent appState (T.VtyEvent e) =
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
                 case e of
-                    -- V.EvKey (V.KChar '+') [] ->
-                    --     let 
-                    --         maxId = getMaxId index appState
-                    --         el = createMainTask index (maxId+1) "this is my new String"
-                    --         in 
-                    --         case l^.(L.listSelectedL) of
-                    --             Just pos ->
-                    --                     M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
-                    --             Nothing ->
-                    --                     M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                    
-                    V.EvKey (V.KChar '+') [] ->
-                        -- M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
+
+                    V.EvKey (V.KChar '1') [] ->
                         let 
                             maxId = getMaxId index appState
                             el = createMainTask index (maxId+1) ""
                             in 
-                            case l^.(L.listSelectedL) of
-                                Just pos ->
-                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                            case L.listSelectedElement l of
+                                Just (pos,task) ->
+                                    let newPos = pos + getTaskLen l (getTaskId task)
+                                    in
+                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo newPos $ L.listInsert newPos el l) (setMaxId index appState (maxId + 1))
                                 Nothing ->
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                        
 
+                    V.EvKey (V.KChar '2') [] ->
+                        case L.listSelectedElement l of
+                            Nothing -> M.continue appState
+                            Just (pos, task) ->
+                                let 
+                                    idx = getTaskId task
+                                    el = createSubTask idx ""
+                                    in 
+                                    case l^.(L.listSelectedL) of
+                                        Just pos ->
+                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) appState
+                                        Nothing ->
+                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) appState
+
+                    -- V.EvKey (V.KChar '-') [] ->
+                    --     case l^.(L.listSelectedL) of
+                    --         Nothing -> M.continue appState
+                    --         Just pos  -> 
+                    --             let
+                    --                 updatedList = L.listRemove pos l
+                    --             in
+                    --                 M.continue $ insertState index updatedList appState        
                     V.EvKey (V.KChar '-') [] ->
+                        case L.listSelectedElement l of
+                            Nothing -> M.continue appState
+                            Just (pos,task)  -> 
+                                if isSub task then 
+                                    let
+                                        updatedList =  L.listMoveBy (max (pos-1) 0) $ L.listRemove pos l
+                                    in
+                                        M.continue $ insertState index updatedList appState        
+                                else  
+                                    let 
+                                        (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
+                                    in
+                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) appState  
+
+                    V.EvKey (V.KChar 'r') [] ->
                         case l^.(L.listSelectedL) of
                             Nothing -> M.continue appState
                             Just pos  -> 
                                 let
-                                    updatedList = L.listRemove pos l
+                                    doneL = donelist appState
+                                    Just (pos, doneTask) = L.listSelectedElement l
+                                    -- updatedList = L.listRemove pos l
+                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                    idx = getTaskId doneTask
+                                    
                                 in
-                                    M.continue $ insertState index updatedList appState        
-
-            
+                                    if isSub doneTask || index < 5 then M.continue $ appState
+                                    else undefined
+                    
                     V.EvKey (V.KChar '4') [] ->
                         case l^.(L.listSelectedL) of
                             Nothing -> M.continue appState
                             Just pos  -> 
                                 let
-                                    doneL       = donelist appState
+                                    doneL = donelist appState
                                     Just (pos, doneTask) = L.listSelectedElement l
-                                    updatedList = L.listRemove pos l
-                                    updatedDoneList = L.listInsert 0 doneTask doneL
+                                    -- updatedList = L.listRemove pos l
+                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                    idx = getTaskId doneTask
+                                    
                                 in
-                                    M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                                    if isSub doneTask then 
+                                        let 
+                                            modifiedT = setTaskDone doneTask
+                                        in M.continue $ insertState index (replaceTask pos modifiedT l) appState
+                                    else 
+                                        let (doneTasks, updatedList) = getDelsTandNewL l idx
+                                            updatedDoneList = insertGL doneTasks doneL
+                                         in
+                                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                                            
 
 
 
@@ -203,7 +260,8 @@ appEvent appState (T.VtyEvent e) =
                                         else M.continue appState
                                     else M.continue $ insertState index (L.listMoveBy 1 l) appState
                             Nothing ->
-                                    M.continue appState 
+                                    if index < 4 then M.continue (appState {pointer = index + 1}) 
+                                    else M.continue appState 
 
                     V.EvKey (V.KUp) [] ->
                         case l^.(L.listSelectedL) of
@@ -214,7 +272,8 @@ appEvent appState (T.VtyEvent e) =
                                                 else M.continue appState
                                     else M.continue $ insertState index (L.listMoveBy (-1) l) appState
                             Nothing ->
-                                M.continue appState
+                                if index > 1 then M.continue (appState {pointer = index - 1}) 
+                                else M.continue appState 
                     
                     V.EvKey (V.KRight) [] ->
                         M.continue (appState {pointer = 5})
@@ -234,6 +293,7 @@ appEvent appState (T.VtyEvent e) =
                 -- where
                 --     nextElement :: Vec.Vector Char -> Char
                 --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+                    
     where 
         index = pointer appState
         l = getList index appState
@@ -277,6 +337,28 @@ data AppState = AppState {
     inputField :: Maybe String  --  used to store the input string
 }
 
+replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
+replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
+
+
+-- this function takes a list of tasks and a id then return the length of the current task
+getTaskLen :: L.List Name Task -> Int -> Int
+getTaskLen l idx = go (Vec.toList (L.listElements l )) idx 0
+    where 
+        go (h:t) id count = if getTaskId h == idx then go t idx (count+1)
+                                                   else go t idx count
+        go _     _  count = count
+
+
+
+-- This function takes a list of tasks and insert it in to the head of another list
+insertGL ::  [Task] -> L.List Name Task -> L.List Name Task
+insertGL v l = go (reverse v) l
+    where 
+        go (h:t) updatel = go t (L.listInsert 0 h updatel)
+        go _     updatel = updatel
+
+
 -- THis function takes the input string and appstate and return a updated appstate
 setInputField :: Maybe String -> AppState -> AppState
 setInputField s appState = appState { inputField = s }
@@ -309,18 +391,53 @@ createMainTask = go
         go 4 maxId s = NNT (maxId,s)
         go _ maxId s = MUT (maxId,s)
 
+createSubTask :: Int -> String -> Task
+createSubTask idx s = SUB (idx, False, s)
+
 initialState :: AppState
 initialState = AppState {
     pointer  = 1,
     status   = 0,
-    imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
-    uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
-    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
-    nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
-    donelist = L.list Done (Vec.empty) 0,
+    imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
+    uList    = L.list Urg    (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
+    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, False, "line1")),(SUB (0, False, "line2")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
+    nnList   = L.list Nn     (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
+    donelist = L.list Done   (Vec.empty) 0,
     curMaxId = [2,2,2,2,0],
     inputField = Nothing
         }
+
+isSub :: Task -> Bool -- tell whether a task is a subtask
+isSub (SUB _) = True
+isSub _       = False
+
+
+setTaskDone :: Task -> Task 
+setTaskDone = go 
+    where go (SUB (n,_,s)) = SUB (n,True,s)
+          go  other        = other
+getTaskId :: Task -> Int
+getTaskId = go 
+    where 
+        go (IMT (id, _)) = id
+        go (UT  (id, _)) = id
+        go (MUT (id, _)) = id
+        go (NNT (id, _)) = id
+        go (SUB (id, _, _)) = id
+
+-- this function takes into a list of task and a id, then return the deleted tasks (correct order) and the updated l (correct order)
+getDelsTandNewL :: L.List Name Task -> Int -> ([Task], L.List Name Task)
+getDelsTandNewL l id = let v = L.listElements l in go (Vec.toList v) id [] []
+    where 
+        go (h:t) id xs os =
+            if curId == id
+                then go t id (setTaskDone h:xs) os
+                else go t id xs (h:os)
+            where
+                curId = getTaskId h
+
+        go [] _ xs os = (reverse xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l)
+                        
 
 getLen :: L.List Name Task -> Int
 getLen = length
