@@ -177,16 +177,30 @@ appEvent appState (T.VtyEvent e) =
                             Just (pos,task)  -> 
                                 if isSub task then 
                                     let
-                                        updatedList = L.listRemove pos l
+                                        updatedList =  L.listMoveBy (max (pos-1) 0) $ L.listRemove pos l
                                     in
                                         M.continue $ insertState index updatedList appState        
-                                else 
+                                else  
                                     let 
                                         (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
-                                        M.continue $ insertState index updatedList appState  
+                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) appState  
 
-            
+                    V.EvKey (V.KChar 'r') [] ->
+                        case l^.(L.listSelectedL) of
+                            Nothing -> M.continue appState
+                            Just pos  -> 
+                                let
+                                    doneL = donelist appState
+                                    Just (pos, doneTask) = L.listSelectedElement l
+                                    -- updatedList = L.listRemove pos l
+                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                    idx = getTaskId doneTask
+                                    
+                                in
+                                    if isSub doneTask || index < 5 then M.continue $ appState
+                                    else undefined
+                    
                     V.EvKey (V.KChar '4') [] ->
                         case l^.(L.listSelectedL) of
                             Nothing -> M.continue appState
@@ -223,7 +237,8 @@ appEvent appState (T.VtyEvent e) =
                                         else M.continue appState
                                     else M.continue $ insertState index (L.listMoveBy 1 l) appState
                             Nothing ->
-                                    M.continue appState 
+                                    if index < 4 then M.continue (appState {pointer = index + 1}) 
+                                    else M.continue appState 
 
                     V.EvKey (V.KUp) [] ->
                         case l^.(L.listSelectedL) of
@@ -234,7 +249,8 @@ appEvent appState (T.VtyEvent e) =
                                                 else M.continue appState
                                     else M.continue $ insertState index (L.listMoveBy (-1) l) appState
                             Nothing ->
-                                M.continue appState
+                                if index > 1 then M.continue (appState {pointer = index - 1}) 
+                                else M.continue appState 
                     
                     V.EvKey (V.KRight) [] ->
                         M.continue (appState {pointer = 5})
@@ -251,9 +267,6 @@ appEvent appState (T.VtyEvent e) =
                     -- any other key pressed, we will not handle it
                     _ -> M.continue appState
                     
-                -- where
-                --     nextElement :: Vec.Vector Char -> Char
-                --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
     where 
         index = pointer appState
         l = getList index appState
