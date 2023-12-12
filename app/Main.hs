@@ -137,7 +137,10 @@ appEvent appState (T.VtyEvent e) =
                                     M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (pos + 1)  $ L.listInsert pos el $ L.listRemove pos l) appState
                             Nothing ->
                                     M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (0 + 1) $ L.listInsert 0 el $ L.listRemove 0 l) appState
-                    
+                
+                -- any other key pressed, we will not handle it
+                _ -> M.continue appState
+
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
                 case e of
@@ -225,7 +228,9 @@ appEvent appState (T.VtyEvent e) =
 
                     V.EvKey V.KEsc [] -> M.halt appState
 
-                    otherEvent -> M.continue appState
+                    -- any other key pressed, we will not handle it
+                    _ -> M.continue appState
+                    
                 -- where
                 --     nextElement :: Vec.Vector Char -> Char
                 --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
