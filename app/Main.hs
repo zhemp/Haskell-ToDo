@@ -77,9 +77,9 @@ drawUI appState = [ui]
                                 --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
                                 -- ]
                                 vLimit 3 $ vBox [
-                                    hBox[C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add")],
+                                    hBox[C.center (str "Add Main Task"), B.vBorder, C.center (str "Add Sub Task"), B.vBorder, C.center (str "Delete"), B.vBorder, C.center (str "Mark as Done"), B.vBorder, C.center (str "Mark as UDone") ],
                                     B.hBorder,
-                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
+                                    hBox[C.center (str "1"), B.vBorder, C.center (str "2"), B.vBorder, C.center (str "-"), B.vBorder, C.center (str "4"), B.vBorder, C.center (str "5")]
                                 ]
                                 ]
             Just input -> C.hCenter $ C.vCenter $ hLimit 131 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
