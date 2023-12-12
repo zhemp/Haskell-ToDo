@@ -120,9 +120,15 @@ appEvent appState (T.VtyEvent e) =
                                 M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
                         Nothing ->
                                 M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                --     let el = IMT (0, "this is my new String")
-                --         pos = Vec.length $ l^.(L.listElementsL)
-                --     in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
+
+            V.EvKey (V.KChar '-') [] ->
+                case l^.(L.listSelectedL) of
+                    Nothing -> M.continue appState
+                    Just pos  -> 
+                        let
+                            updatedList = L.listRemove pos l
+                        in
+                            M.continue $ insertState index updatedList appState
 
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
