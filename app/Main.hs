@@ -44,7 +44,19 @@ drawUI appState = [ui]
         undone_total = str $ show (total_mu + total_u + total_m + total_nn)
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
-        ui =  C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
+        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 1) (muList appState)
+        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 2) (uList appState)
+        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 3) (imList appState)
+        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
+                L.renderList listDrawElement (focus == 4) (nnList appState)
+        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
+                L.renderList listDrawElement (focus == 5) (donelist appState)
+
+        ui = case inputField appState of
+            Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
                 C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
@@ -65,35 +77,39 @@ drawUI appState = [ui]
                                 --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
                                 -- ]
                                 vLimit 3 $ vBox [
-                                    hBox[C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add"), B.vBorder, C.center (str "add")],
+                                    hBox[C.center (str "Add Main Task"), B.vBorder, C.center (str "Add Sub Task"), B.vBorder, C.center (str "Delete"), B.vBorder, C.center (str "Mark as Done"), B.vBorder, C.center (str "Mark as UDone") ],
                                     B.hBorder,
-                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+")]
+                                    hBox[C.center (str "1"), B.vBorder, C.center (str "2"), B.vBorder, C.center (str "-"), B.vBorder, C.center (str "4"), B.vBorder, C.center (str "5")]
                                 ]
-                              ]
-        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 1) (muList appState)
-        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 2) (uList appState)
-        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 3) (imList appState)
-        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 4) (nnList appState)
-        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
-                L.renderList listDrawElement (focus == 5) (donelist appState)
-    --     label = str "Item " <+> cur <+> str " of " <+> total
-    --     cur = case l^.(L.listSelectedL) of
-    --             Nothing -> str "-"
-    --             Just i  -> str (show (i + 1))
-    --     total = str $ show $ Vec.length $ l^.(L.listElementsL)
-    --     box = B.borderWithLabel label $
-    --           hLimit 25 $
-    --           vLimit 15 $
-    --           L.renderList listDrawElement False l
-    --     ui = C.vCenter $ vBox [ C.hCenter box
-    --                           , str " "
-    --                           , C.hCenter $ str "Press +/- to add/remove list elements."
-    --                           , C.hCenter $ str "Press Esc to exit."
-    --                           ]
+                                ]
+            Just input -> C.hCenter $ C.vCenter $ hLimit 131 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
+                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
+                                B.hBorder,
+                                hBox [vBox [mubox,
+                                            ubox,
+                                            mbox,
+                                            nnbox
+                                            ],
+                                        doneBox
+                                    ],
+                                B.hBorder,
+                                -- hBox[
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
+                                --     B.vBorder,
+                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
+                                -- ]
+                                vLimit 3 $ vBox [
+                                    hBox[C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "Enter")],
+                                    B.hBorder,
+                                    hBox[C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "+"), B.vBorder, C.center (str "Finish")]
+                                ]
+                                , str input
+                                ]
+            
 
 listDrawElement :: Bool -> Task -> Widget Name
 listDrawElement _ task =
@@ -281,6 +297,10 @@ appEvent appState (T.VtyEvent e) =
 
                     -- any other key pressed, we will not handle it
                     _ -> M.continue appState
+
+                -- where
+                --     nextElement :: Vec.Vector Char -> Char
+                --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
                     
     where 
         index = pointer appState
