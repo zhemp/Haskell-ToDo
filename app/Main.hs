@@ -137,25 +137,16 @@ appEvent appState (T.VtyEvent e) =
         Just input -> 
              case e of
                 V.EvKey V.KEnter [] -> 
-                    M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) $ setMaxId index appState (maxId+1)
-                    where 
-                        maxId = getMaxId index appState
-                        el = createMainTask index (maxId+1) input
-                        Just pos = l^.(L.listSelectedL)
+                    case l^.(L.listSelectedL) of
+                        Just pos ->
+                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) $ setMaxId index appState (maxId+1)
+                                where 
+                                    maxId = getMaxId index appState
+                                    el = createMainTask index (maxId+1) input
+                        Nothing  -> M.continue appState
                 
                 V.EvKey (V.KChar c) [] ->
-                    -- add the char to the inputField
-                    -- M.continue $ appState { inputField = Just (input ++ [c]) }
-                    -- try to visualize the inputField when receiving input, using ListInsert
-                    -- let 
-                    --     el = createMainTask index maxId (input ++ [c])
-                    --     maxId = getMaxId index appState
-                    -- in
-                    --     case l^.(L.listSelectedL) of
-                    --         Just pos ->
-                    --                 M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (pos + 1)  $ L.listInsert pos el $ L.listRemove pos l) appState
-                    --         Nothing ->
-                    --                 M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (0 + 1) $ L.listInsert 0 el $ L.listRemove 0 l) appState
+
                     M.continue $ setInputField (Just (input ++ [c])) appState
 
                 -- any other key pressed, we will not handle it
@@ -177,7 +168,7 @@ appEvent appState (T.VtyEvent e) =
                             --             M.continue $ setInputField (Just "") appstate
                             --     Nothing ->
                             --             M.continue $ setInputField (Just "") appstate
-                        M.continue $ setInputField (Just "") appState
+                        M.continue $ setInputField (Just "") appState {status = 0}
 
                     V.EvKey (V.KChar '2') [] ->
                         case L.listSelectedElement l of
@@ -342,6 +333,7 @@ data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
 
 data AppState = AppState {
     pointer   :: Int,
+    -- 0 is adding main task, 1 is for adding sub task
     status    :: Int,
     imList    :: L.List Name Task,
     uList     :: L.List Name Task, 
@@ -351,6 +343,7 @@ data AppState = AppState {
     curMaxId  :: [Int],
     inputField :: Maybe String  --  used to store the input string
 }
+
 
 
 -- replace the tasks at the appointed positon of the given list using the given task
