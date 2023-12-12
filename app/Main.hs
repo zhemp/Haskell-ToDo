@@ -128,7 +128,23 @@ appEvent appState (T.VtyEvent e) =
                         let
                             updatedList = L.listRemove pos l
                         in
-                            M.continue $ insertState index updatedList appState
+                            M.continue $ insertState index updatedList appState        
+
+                
+            V.EvKey (V.KChar '4') [] ->
+                case l^.(L.listSelectedL) of
+                    Nothing -> M.continue appState
+                    Just pos  -> 
+                        let
+                            doneL       = donelist appState
+                            Just (pos, doneTask) = L.listSelectedElement l
+                            updatedList = L.listRemove pos l
+                            updatedDoneList = L.listInsert 0 doneTask doneL
+                        in
+                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+
+
+
 
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
@@ -185,7 +201,7 @@ appEvent l _ = M.continue l
 type L1Task = (Int, String) --()
 
 
--- (SUB  (represent the id of its main task,  Bool shows whether the subtask has been done, String is whether it has been done))
+-- (SUB  (represent the id of its main task,  Bool shows whether the subtask has been done: True = done, False = todo, String is whether it has been done))
 data Task = 
    IMT L1Task
  | UT  L1Task
