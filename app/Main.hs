@@ -144,7 +144,7 @@ appEvent appState (T.VtyEvent e) =
                     -- try to visualize the inputField when receiving input, using ListInsert
                     let 
                         el = createMainTask index maxId (input ++ [c])
-                        maxId = getMaxId index appStatef
+                        maxId = getMaxId index appState
                     in
                         case l^.(L.listSelectedL) of
                             Just pos ->
