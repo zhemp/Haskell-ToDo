@@ -79,3 +79,34 @@
                             --             M.continue $ setInputField (Just "") appstate
                             --     Nothing ->
                             --             M.continue $ setInputField (Just "") appstate
+                        -- let 
+                        --     maxId = getMaxId index appState
+                        --     el = createMainTask index (maxId+1) ""
+                        --     in 
+                            -- case L.listSelectedElement l of
+                            --     Just (pos,task) ->
+                            --         let newPos = getTaskEndIndex l (getTaskId task)
+                            --         in
+                            --             M.continue $ setInputField (Just "") appstate
+                            --     Nothing ->
+                            --             M.continue $ setInputField (Just "") appstate
+                                                -- case L.listSelectedElement l of
+                        --     Nothing -> M.continue appState
+                        --     Just (pos, task) ->
+                        --         let 
+                        --             idx = getTaskId task
+                        --             el = createSubTask idx ""
+                        --             in 
+                        --             case l^.(L.listSelectedL) of
+                        --                 Just pos ->
+                        --                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) appState
+                        --                 Nothing ->
+                        --                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) appState
+                                        -- V.EvKey (V.KChar '-') [] ->
+                    --     case l^.(L.listSelectedL) of
+                    --         Nothing -> M.continue appState
+                    --         Just pos  -> 
+                    --             let
+                    --                 updatedList = L.listRemove pos l
+                    --             in
+                    --                 M.continue $ insertState index updatedList appState  

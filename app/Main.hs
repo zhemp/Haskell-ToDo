@@ -132,87 +132,97 @@ listDrawElement _ task =
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent appState (T.VtyEvent e) = 
-    case inputField appState of
+    let noErrApST = appState {errorMessage = Nothing}
+    in
+    case inputField noErrApST of
         --  if the inputField is not empty, then we will handle the input
         Just input -> 
              case e of
                 V.EvKey V.KEnter [] -> 
-                    case l^.(L.listSelectedL) of
-                        Just pos ->
-                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) $ setMaxId index appState (maxId+1)
-                                where 
-                                    maxId = getMaxId index appState
-                                    el = createMainTask index (maxId+1) input
-                        Nothing  -> M.continue appState
-                
+                    let 
+                        curStatus = status noErrApST 
+                    in 
+                        case L.listSelectedElement l of
+                            Just (pos, task) ->
+                                
+                                    if curStatus == 0 then 
+                                        let maxId = getMaxId index noErrApST
+                                            el = createMainTask index (maxId+1) input
+                                            newPos = getTaskEndIndex l (getTaskId task)
+                                        in 
+                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo newPos $ L.listInsert newPos el l) $ setMaxId index noErrApST (maxId+1)
+                                    else if curStatus == 1 then 
+                                        let idx = getTaskId task
+                                            el = createSubTask idx input
+                                        in 
+                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) noErrApST
+                                    else M.continue noErrApST
+                            Nothing  ->  
+                                if curStatus == 0 then 
+                                        let maxId = getMaxId index noErrApST
+                                            el = createMainTask index (maxId+1) input
+                                        in 
+                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) $ setMaxId index noErrApST (maxId+1)
+                                    else M.continue noErrApST
+
+                V.EvKey (V.KChar '\BS') []  ->
+                    if length input > 0 
+                        then
+                            -- Assuming you want to remove the last character from the input
+                            let newInput = init input
+                            in M.continue $ setInputField (Just newInput) noErrApST
+                        else
+                            -- Handle the case where there is no input to remove
+                            M.continue noErrApST
+                V.EvKey (V.KChar '\DEL') [] -> 
+                    if length input > 0 then let newInput = init input in M.continue $ setInputField (Just newInput) noErrApST else M.continue noErrApST
+                V.EvKey  V.KBS [] -> 
+                    if length input > 0 then let newInput = init input in M.continue $ setInputField (Just newInput) noErrApST else M.continue noErrApST
+
+
+
                 V.EvKey (V.KChar c) [] ->
 
-                    M.continue $ setInputField (Just (input ++ [c])) appState
+                    M.continue $ setInputField (Just (input ++ [c])) noErrApST
 
                 -- any other key pressed, we will not handle it
-                _ -> M.continue appState
+                _ -> M.continue noErrApST
 
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
                 case e of
 
                     V.EvKey (V.KChar '1') [] ->
-                        -- let 
-                        --     maxId = getMaxId index appState
-                        --     el = createMainTask index (maxId+1) ""
-                        --     in 
-                            -- case L.listSelectedElement l of
-                            --     Just (pos,task) ->
-                            --         let newPos = pos + getTaskLen l (getTaskId task)
-                            --         in
-                            --             M.continue $ setInputField (Just "") appstate
-                            --     Nothing ->
-                            --             M.continue $ setInputField (Just "") appstate
-                        M.continue $ setInputField (Just "") appState {status = 0}
+
+                        M.continue $ setInputField (Just "") noErrApST {status = 0}
 
                     V.EvKey (V.KChar '2') [] ->
                         case L.listSelectedElement l of
-                            Nothing -> M.continue appState
-                            Just (pos, task) ->
-                                let 
-                                    idx = getTaskId task
-                                    el = createSubTask idx ""
-                                    in 
-                                    case l^.(L.listSelectedL) of
-                                        Just pos ->
-                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) appState
-                                        Nothing ->
-                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) appState
-
-                    -- V.EvKey (V.KChar '-') [] ->
-                    --     case l^.(L.listSelectedL) of
-                    --         Nothing -> M.continue appState
-                    --         Just pos  -> 
-                    --             let
-                    --                 updatedList = L.listRemove pos l
-                    --             in
-                    --                 M.continue $ insertState index updatedList appState        
+                            Just (pos,task)  -> 
+                                M.continue $ setInputField (Just "") noErrApST {status = 1}
+                            Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
+      
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
-                            Nothing -> M.continue appState
+                            Nothing -> M.continue noErrApST
                             Just (pos,task)  -> 
                                 if isSub task then 
                                     let
                                         updatedList =  L.listMoveBy (max (pos-1) 0) $ L.listRemove pos l
                                     in
-                                        M.continue $ insertState index updatedList appState        
+                                        M.continue $ insertState index updatedList noErrApST        
                                 else  
                                     let 
                                         (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
-                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) appState  
+                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
 
                     V.EvKey (V.KChar '5') [] ->
                         case l^.(L.listSelectedL) of
-                            Nothing -> M.continue appState
+                            Nothing -> M.continue noErrApST
                             Just pos  -> 
                                 let
-                                    doneL = donelist appState
+                                    doneL = donelist noErrApST
                                     Just (pos, doneTask) = L.listSelectedElement l
                                     -- updatedList = L.listRemove pos l
                                     -- updatedDoneList = L.listInsert 0 doneTask doneL
@@ -220,23 +230,23 @@ appEvent appState (T.VtyEvent e) =
                                     
                                     
                                 in
-                                    if isSub doneTask || index < 5 then M.continue $ appState
+                                    if isSub doneTask || index < 5 then M.continue $ noErrApST
                                     else let (tasks, updateDoneL) = getDelsTandNewL doneL idx 
                                             -- modify all the tasks in the given list as undo
                                              toDoTasks = map setTaskToDo tasks
                                              pointedListIndex = getPriority doneTask
-                                             updatedTodoL = insertGL toDoTasks $ getList pointedListIndex appState
+                                             updatedTodoL = insertGL toDoTasks $ getList pointedListIndex noErrApST
                                          in 
-                                            M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL appState
+                                            M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
                                             
                     
 
                     V.EvKey (V.KChar '4') [] ->
                         case l^.(L.listSelectedL) of
-                            Nothing -> M.continue appState
+                            Nothing -> M.continue noErrApST
                             Just pos  -> 
                                 let
-                                    doneL = donelist appState
+                                    doneL = donelist noErrApST
                                     Just (pos, doneTask) = L.listSelectedElement l
                                     -- updatedList = L.listRemove pos l
                                     -- updatedDoneList = L.listInsert 0 doneTask doneL
@@ -246,12 +256,12 @@ appEvent appState (T.VtyEvent e) =
                                     if isSub doneTask then 
                                         let 
                                             modifiedT = setTaskDone doneTask
-                                        in M.continue $ insertState index (replaceTask pos modifiedT l) appState
+                                        in M.continue $ insertState index (replaceTask pos modifiedT l) noErrApST
                                     else 
                                         let (doneTasks, updatedList) = getDelsTandNewL l idx
                                             updatedDoneList = insertGL doneTasks doneL
                                          in
-                                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                                            M.continue $ insertState index updatedList (noErrApST {donelist = updatedDoneList})
                                             
 
 
@@ -262,39 +272,39 @@ appEvent appState (T.VtyEvent e) =
                                 let len = getLen l - 1
                                 in if pos == len
                                     then if index /= 4 && index /= 5
-                                        then M.continue (appState {pointer = index + 1}) 
-                                        else M.continue appState
-                                    else M.continue $ insertState index (L.listMoveBy 1 l) appState
+                                        then M.continue (noErrApST {pointer = index + 1}) 
+                                        else M.continue noErrApST
+                                    else M.continue $ insertState index (L.listMoveBy 1 l) noErrApST
                             Nothing ->
-                                    if index < 4 then M.continue (appState {pointer = index + 1}) 
-                                    else M.continue appState 
+                                    if index < 4 then M.continue (noErrApST {pointer = index + 1}) 
+                                    else M.continue noErrApST 
 
                     V.EvKey (V.KUp) [] ->
                         case l^.(L.listSelectedL) of
                             Just pos ->
                                 if pos == 0
                                     then if index /= 1 && index /= 5
-                                                then M.continue (appState {pointer = index - 1})
-                                                else M.continue appState
-                                    else M.continue $ insertState index (L.listMoveBy (-1) l) appState
+                                                then M.continue (noErrApST {pointer = index - 1})
+                                                else M.continue noErrApST
+                                    else M.continue $ insertState index (L.listMoveBy (-1) l) noErrApST
                             Nothing ->
-                                if index > 1 then M.continue (appState {pointer = index - 1}) 
-                                else M.continue appState 
+                                if index > 1 then M.continue (noErrApST {pointer = index - 1}) 
+                                else M.continue noErrApST 
                     
                     V.EvKey (V.KRight) [] ->
-                        M.continue (appState {pointer = 5})
+                        M.continue (noErrApST {pointer = 5})
             
                     V.EvKey (V.KLeft) [] ->
-                        M.continue (appState {pointer = 1})
+                        M.continue (noErrApST {pointer = 1})
                     -- V.EvKey (V.KChar '-') [] ->
                     --     case l^.(L.listSelectedL) of
                     --         Nothing -> M.continue l
                     --         Just i  -> M.continue $ L.listRemove i l
 
-                    V.EvKey V.KEsc [] -> M.halt appState
+                    V.EvKey V.KEsc [] -> M.halt noErrApST
 
                     -- any other key pressed, we will not handle it
-                    _ -> M.continue appState
+                    _ -> M.continue noErrApST
 
                 -- where
                 --     nextElement :: Vec.Vector Char -> Char
@@ -341,7 +351,8 @@ data AppState = AppState {
     nnList    :: L.List Name Task,
     donelist  :: L.List Name Task,
     curMaxId  :: [Int],
-    inputField :: Maybe String  --  used to store the input string
+    inputField :: Maybe String,  --  used to store the input string
+    errorMessage :: Maybe String
 }
 
 
@@ -366,6 +377,16 @@ getTaskLen l idx = go (Vec.toList (L.listElements l )) idx 0
                                                    else go t idx count
         go _     _  count = count
 
+-- this function takes into a list and a id then return the index +1 of the last subtask
+getTaskEndIndex :: L.List Name Task -> Int -> Int
+getTaskEndIndex l idx = go (Vec.toList (L.listElements l )) idx 0 False
+    where 
+        go (h:t) id count False = if getTaskId h == idx then go t idx (count+1) True
+                                                   else go t idx (count+1) False
+        go (h:t) id count True  = if getTaskId h == idx then go t idx (count+1) True
+                                                   else go t idx (count) True
+
+        go _     _  count _= count 
 
 
 -- This function takes a list of tasks and insert it in to the head of another list
@@ -421,7 +442,8 @@ initialState = AppState {
     nnList   = L.list Nn     (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list Done   (Vec.empty) 0,
     curMaxId = [2,2,2,2,0],
-    inputField = Nothing
+    inputField = Nothing,
+    errorMessage = Nothing
         }
 
 isSub :: Task -> Bool -- tell whether a task is a subtask
