@@ -23,9 +23,7 @@ import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 
 
-isSub :: Task -> Bool -- tell whether a task is a subtask
-isSub (SUB _) = True
-isSub _       = False
+
 
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
@@ -266,6 +264,10 @@ initialState = AppState {
     donelist = L.list Done (Vec.empty) 0,
     curMaxId = [2,2,2,2,0]
         }
+
+isSub :: Task -> Bool -- tell whether a task is a subtask
+isSub (SUB _) = True
+isSub _       = False
 
 getLen :: L.List Name Task -> Int
 getLen = length
