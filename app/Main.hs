@@ -30,8 +30,8 @@ import qualified Data.Foldable as V
 
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
-    where 
-        errorMessage = errorMessage appState
+    where
+        errmsg = errorMessage appState
         focus = pointer appState --get the current focused list id
 
         total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState))
@@ -73,9 +73,9 @@ drawUI appState = [ui]
                                     B.hBorder,
                                     hBox[C.center (str "1"), B.vBorder, C.center (str "2"), B.vBorder, C.center (str "-"), B.vBorder, C.center (str "4"), B.vBorder, C.center (str "5")]
                                 ],
-                                case errorMessage of
-                                    Just error -> vLimit 3 $ vBox[
-                                                        C.center $ str error
+                                case errmsg of
+                                    Just err -> vLimit 3 $ vBox[
+                                                        C.center $ str err
                                                         , B.hBorder
                                                         , C.center $ str "Press any key to ignore this error."
                                                     ]
@@ -100,6 +100,14 @@ drawUI appState = [ui]
                                 , case input of 
                                     "" -> str "Please input your task content!"
                                     _ -> str input
+                                ,
+                                case errmsg of
+                                    Just err -> vLimit 3 $ vBox[
+                                                        C.center $ str err
+                                                        , B.hBorder
+                                                        , C.center $ str "Press any key to ignore this error."
+                                                    ]
+                                    Nothing -> emptyWidget
                                 ]
             
 
