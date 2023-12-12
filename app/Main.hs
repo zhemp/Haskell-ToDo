@@ -114,16 +114,7 @@ appEvent appState (T.VtyEvent e) =
         Just input -> 
              case e of
                 V.EvKey V.KEnter [] -> 
-                    -- -- complete the input, and add it to the list
-                    -- let 
-                    --     el = createMainTask index (maxId+1) input 
-                    --     maxId = getMaxId index appState
-                    -- in
-                    --     case l^.(L.listSelectedL) of
-                    --         Just pos ->
-                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
-                    --         Nothing ->
-                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+
                     M.continue $ appState { inputField = Nothing }
                 
                 V.EvKey (V.KChar c) [] ->
@@ -147,8 +138,7 @@ appEvent appState (T.VtyEvent e) =
         Nothing ->
                 case e of
 
-                    V.EvKey (V.KChar '+') [] ->
-                        -- M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
+                    V.EvKey (V.KChar '1') [] ->
                         let 
                             maxId = getMaxId index appState
                             el = createMainTask index (maxId+1) ""
@@ -158,6 +148,19 @@ appEvent appState (T.VtyEvent e) =
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
                                 Nothing ->
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+                    V.EvKey (V.KChar '2') [] ->
+                        case L.listSelectedElement l of
+                            Nothing -> M.continue appState
+                            Just (pos, task) ->
+                                let 
+                                    idx = getTaskId task
+                                    el = createSubTask idx ""
+                                    in 
+                                    case l^.(L.listSelectedL) of
+                                        Just pos ->
+                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) appState
+                                        Nothing ->
+                                                M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) appState
 
                     -- V.EvKey (V.KChar '-') [] ->
                     --     case l^.(L.listSelectedL) of
@@ -313,6 +316,9 @@ createMainTask = go
         go 3 maxId s = IMT (maxId,s)
         go 4 maxId s = NNT (maxId,s)
         go _ maxId s = MUT (maxId,s)
+
+createSubTask :: Int -> String -> Task
+createSubTask idx s = SUB (idx, False, s)
 
 initialState :: AppState
 initialState = AppState {
