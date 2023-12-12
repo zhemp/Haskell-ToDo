@@ -21,6 +21,8 @@ import qualified Brick.Widgets.Center as C
 import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), (<=>),hBox, fill)
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
+import qualified Data.Foldable as Vector
+import qualified Data.IMap as Vector
 
 
 
@@ -103,89 +105,129 @@ listDrawElement _ task =
 --         MUT (_, content) -> str content
 --         NNT (_, content) -> str content
 
-appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
-appEvent appState (T.VtyEvent e) =  
-    let index = pointer appState
-        l = getList index appState
-    in 
-        case e of
-            V.EvKey (V.KChar '+') [] ->
-                let 
-                    maxId = getMaxId index appState
-                    el = createMainTask index (maxId+1) "this is my new String"
-                    in 
-                    case l^.(L.listSelectedL) of
-                        Just pos ->
-                                M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
-                        Nothing ->
-                                M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
 
-            V.EvKey (V.KChar '-') [] ->
-                case L.listSelectedElement l of
-                    Nothing -> M.continue appState
-                    Just (pos,task)  -> 
-                        if isSub task then 
-                            let
-                                updatedList = L.listRemove pos l
-                            in
-                                M.continue $ insertState index updatedList appState        
-                        else M.continue appState  
+
+appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
+appEvent appState (T.VtyEvent e) = 
+    case inputField appState of
+        --  if the inputField is not empty, then we will handle the input
+        Just input -> 
+             case e of
+                V.EvKey V.KEnter [] -> 
+                    -- complete the input, and add it to the list
+                    let 
+                        el = createMainTask index (maxId+1) input 
+                        maxId = getMaxId index appState
+                    in
+                        case l^.(L.listSelectedL) of
+                            Just pos ->
+                                    M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                            Nothing ->
+                                    M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
 
                 
-            V.EvKey (V.KChar '4') [] ->
-                case l^.(L.listSelectedL) of
-                    Nothing -> M.continue appState
-                    Just pos  -> 
-                        let
-                            doneL       = donelist appState
-                            Just (pos, doneTask) = L.listSelectedElement l
-                            updatedList = L.listRemove pos l
-                            updatedDoneList = L.listInsert 0 doneTask doneL
-                        in
-                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                V.EvKey (V.KChar c) [] ->
+                    -- add the char to the inputField
+                    M.continue $ appState { inputField = Just (input ++ [c]) }
 
+        -- if the inputField is empty, then we will handle the event as usual
+        Nothing ->
+                case e of
+                    -- V.EvKey (V.KChar '+') [] ->
+                    --     let 
+                    --         maxId = getMaxId index appState
+                    --         el = createMainTask index (maxId+1) "this is my new String"
+                    --         in 
+                    --         case l^.(L.listSelectedL) of
+                    --             Just pos ->
+                    --                     M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                    --             Nothing ->
+                    --                     M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+                    
+                    V.EvKey (V.KChar '+') [] ->
+                        M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
 
+                    -- V.EvKey (V.KChar '-') [] ->
+                    --     case l^.(L.listSelectedL) of
+                    --         Nothing -> M.continue appState
+                    --         Just pos  -> 
+                    --             let
+                    --                 updatedList = L.listRemove pos l
+                    --             in
+                    --                 M.continue $ insertState index updatedList appState        
+                    V.EvKey (V.KChar '-') [] ->
+                        case L.listSelectedElement l of
+                            Nothing -> M.continue appState
+                            Just (pos,task)  -> 
+                                if isSub task then 
+                                    let
+                                        updatedList = L.listRemove pos l
+                                    in
+                                        M.continue $ insertState index updatedList appState        
+                                else 
+                                    let 
+                                        (tasks, l) = getDelsTandNewL l (getTaskId task)
+                                    in
+                                        M.continue $ insertState index l appState  
 
-
-            V.EvKey (V.KDown) [] ->
-                case l^.(L.listSelectedL) of
-                    Just pos ->
-                        let len = getLen l - 1
-                        in if pos == len
-                              then if index /= 4 && index /= 5
-                                then M.continue (appState {pointer = index + 1}) 
-                                else M.continue appState
-                            else M.continue $ insertState index (L.listMoveBy 1 l) appState
-                    Nothing ->
-                            M.continue appState 
-
-            V.EvKey (V.KUp) [] ->
-                case l^.(L.listSelectedL) of
-                    Just pos ->
-                        if pos == 0
-                            then if index /= 1 && index /= 5
-                                        then M.continue (appState {pointer = index - 1})
-                                        else M.continue appState
-                            else M.continue $ insertState index (L.listMoveBy (-1) l) appState
-                    Nothing ->
-                        M.continue appState
             
-            V.EvKey (V.KRight) [] ->
-                M.continue (appState {pointer = 5})
-    
-            V.EvKey (V.KLeft) [] ->
-                M.continue (appState {pointer = 1})
-            -- V.EvKey (V.KChar '-') [] ->
-            --     case l^.(L.listSelectedL) of
-            --         Nothing -> M.continue l
-            --         Just i  -> M.continue $ L.listRemove i l
+                    V.EvKey (V.KChar '4') [] ->
+                        case l^.(L.listSelectedL) of
+                            Nothing -> M.continue appState
+                            Just pos  -> 
+                                let
+                                    doneL = donelist appState
+                                    Just (pos, doneTask) = L.listSelectedElement l
+                                    updatedList = L.listRemove pos l
+                                    updatedDoneList = L.listInsert 0 doneTask doneL
+                                in
+                                    M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
 
-            V.EvKey V.KEsc [] -> M.halt appState
 
-            otherEvent -> M.continue appState
-        where
-            nextElement :: Vec.Vector Char -> Char
-            nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+
+
+                    V.EvKey (V.KDown) [] ->
+                        case l^.(L.listSelectedL) of
+                            Just pos ->
+                                let len = getLen l - 1
+                                in if pos == len
+                                    then if index /= 4 && index /= 5
+                                        then M.continue (appState {pointer = index + 1}) 
+                                        else M.continue appState
+                                    else M.continue $ insertState index (L.listMoveBy 1 l) appState
+                            Nothing ->
+                                    M.continue appState 
+
+                    V.EvKey (V.KUp) [] ->
+                        case l^.(L.listSelectedL) of
+                            Just pos ->
+                                if pos == 0
+                                    then if index /= 1 && index /= 5
+                                                then M.continue (appState {pointer = index - 1})
+                                                else M.continue appState
+                                    else M.continue $ insertState index (L.listMoveBy (-1) l) appState
+                            Nothing ->
+                                M.continue appState
+                    
+                    V.EvKey (V.KRight) [] ->
+                        M.continue (appState {pointer = 5})
+            
+                    V.EvKey (V.KLeft) [] ->
+                        M.continue (appState {pointer = 1})
+                    -- V.EvKey (V.KChar '-') [] ->
+                    --     case l^.(L.listSelectedL) of
+                    --         Nothing -> M.continue l
+                    --         Just i  -> M.continue $ L.listRemove i l
+
+                    V.EvKey V.KEsc [] -> M.halt appState
+
+                    otherEvent -> M.continue appState
+                -- where
+                --     nextElement :: Vec.Vector Char -> Char
+                --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
+    where 
+        index = pointer appState
+        l = getList index appState
 appEvent l _ = M.continue l
 
 -- listDrawElement :: (Show a) => Bool -> a -> Widget ()
@@ -222,10 +264,13 @@ data AppState = AppState {
     muList    :: L.List Name Task, 
     nnList    :: L.List Name Task,
     donelist  :: L.List Name Task,
-    curMaxId  :: [Int]
+    curMaxId  :: [Int],
+    inputField :: Maybe String  --  used to store the input string
 }
 
-
+-- THis function takes the input string and appstate and return a updated appstate
+setInputField :: Maybe String -> AppState -> AppState
+setInputField s appState = appState { inputField = s }
 
 --  THis function takes the pointer (Int) and return the corresponding list
 getList :: Int -> AppState -> L.List Name Task
@@ -259,23 +304,37 @@ initialState :: AppState
 initialState = AppState {
     pointer  = 1,
     status   = 0,
-    imList   = L.list Imp (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
-    uList    = L.list Urg (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
+    imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
+    uList    = L.list Urg    (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
-    nnList   = L.list Nn (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
-    donelist = L.list Done (Vec.empty) 0,
-    curMaxId = [2,2,2,2,0]
+    nnList   = L.list Nn     (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
+    donelist = L.list Done   (Vec.empty) 0,
+    curMaxId = [2,2,2,2,0],
+    inputField = Nothing
         }
 
 isSub :: Task -> Bool -- tell whether a task is a subtask
 isSub (SUB _) = True
 isSub _       = False
 
--- this function takes into a list of task and a id, then return the indexs of all the main and sub tasks with that id
-getTasksId :: L.List Name Task -> Int -> [Int]
-getTasksId l id = let vecs = L.listElements l in go vecs id []
+getTaskId :: Task -> Int
+getTaskId = go 
     where 
-        go 
+        go (IMT (id, _)) = id
+        go (UT  (id, _)) = id
+        go (MUT (id, _)) = id
+        go (NNT (id, _)) = id
+        go (SUB (id, _, _)) = id
+
+-- this function takes into a list of task and a id, then return the deleted tasks (reverse order) and the updated l (correct order)
+getDelsTandNewL :: L.List Name Task -> Int -> ([Task],L.List Name Task)
+getDelsTandNewL l id = let v = L.listElements l in go (Vec.toList v) id [] []
+    where 
+        go (h:t) id xs os = if curId == id then go t id (h:xs) os
+                                                 else go t id xs (h:os)
+                                                 where curId = getTaskId h
+        go []    _  xs os = (xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l )
+                        
 
 getLen :: L.List Name Task -> Int
 getLen = length
