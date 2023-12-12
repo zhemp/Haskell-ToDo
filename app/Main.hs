@@ -146,17 +146,7 @@ appEvent appState (T.VtyEvent e) =
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
                 case e of
-                    -- V.EvKey (V.KChar '+') [] ->
-                    --     let 
-                    --         maxId = getMaxId index appState
-                    --         el = createMainTask index (maxId+1) "this is my new String"
-                    --         in 
-                    --         case l^.(L.listSelectedL) of
-                    --             Just pos ->
-                    --                     M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
-                    --             Nothing ->
-                    --                     M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                    
+
                     V.EvKey (V.KChar '+') [] ->
                         -- M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
                         let 
@@ -168,7 +158,6 @@ appEvent appState (T.VtyEvent e) =
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
                                 Nothing ->
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                        
 
                     -- V.EvKey (V.KChar '-') [] ->
                     --     case l^.(L.listSelectedL) of
@@ -189,9 +178,9 @@ appEvent appState (T.VtyEvent e) =
                                         M.continue $ insertState index updatedList appState        
                                 else 
                                     let 
-                                        (tasks, l) = getDelsTandNewL l (getTaskId task)
+                                        (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
-                                        M.continue $ insertState index l appState  
+                                        M.continue $ insertState index updatedList appState  
 
             
                     V.EvKey (V.KChar '4') [] ->
@@ -352,13 +341,17 @@ getTaskId = go
         go (SUB (id, _, _)) = id
 
 -- this function takes into a list of task and a id, then return the deleted tasks (reverse order) and the updated l (correct order)
-getDelsTandNewL :: L.List Name Task -> Int -> ([Task],L.List Name Task)
+getDelsTandNewL :: L.List Name Task -> Int -> ([Task], L.List Name Task)
 getDelsTandNewL l id = let v = L.listElements l in go (Vec.toList v) id [] []
     where 
-        go (h:t) id xs os = if curId == id then go t id (h:xs) os
-                                                 else go t id xs (h:os)
-                                                 where curId = getTaskId h
-        go []    _  xs os = (xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l )
+        go (h:t) id xs os =
+            if curId == id
+                then go t id (h:xs) os
+                else go t id xs (h:os)
+            where
+                curId = getTaskId h
+
+        go [] _ xs os = (xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l)
                         
 
 getLen :: L.List Name Task -> Int
