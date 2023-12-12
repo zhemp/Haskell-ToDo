@@ -39,7 +39,7 @@ drawUI appState = [ui]
         undone_total = str $ show (total_mu + total_u + total_m + total_nn)
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
-        ui =  C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 30 $ B.borderWithLabel (str "Fantastic To-do") $ 
+        ui =  C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
                 C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
@@ -95,15 +95,15 @@ listDrawElement _ task =
     case task of 
         SUB (_, _, _) -> str "  └── " <+> str (show task)
         _ -> str (show task)
--- listDrawElement :: Bool -> Task -> Widget Name  replace he current draw with this
+-- listDrawElement :: Bool -> Task -> Widget Name --replace he current draw with this
 -- listDrawElement _ task =
 --         case task of
---         SUB (_, done, content) -> if done then C.hCenter (str "X " <+> str content)
---                                             else C.hCenter (str content)
---         IMT (_, content) -> C.hCenter $ str content
---         UT  (_, content) -> C.hCenter $ str content
---         MUT (_, content) -> C.hCenter $ str content
---         NNT (_, content) -> C.hCenter $ str content
+--         SUB (_, done, content) -> if done then str "  └── " <+> str "X " <+> str content
+--                                             else str "  └── " <+> str content
+--         IMT (_, content) -> str content
+--         UT  (_, content) -> str content
+--         MUT (_, content) -> str content
+--         NNT (_, content) -> str content
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
 appEvent appState (T.VtyEvent e) = 
