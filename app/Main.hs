@@ -18,12 +18,11 @@ import qualified Brick.Types as T
 import Brick.Util (fg, on)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
-import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), hBox)
+import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), (<=>),hBox, fill)
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 
 
--- >>> imList initialState
 isSub :: Task -> Bool -- tell whether a task is a subtask
 isSub (SUB _) = True
 isSub _       = False
@@ -33,14 +32,15 @@ drawUI appState = [ui]
     where 
         focus = pointer appState --get the current focused list id
 
-        total_mu = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (muList appState)) 
-        total_u = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (uList appState)) 
-        total_m = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (imList appState)) 
-        total_nn = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (nnList appState)) 
-        undone_total = str $ show $ (total_mu + total_u + total_m + total_nn)
-        total_done = Vec.length $ Vec.filter (not . isSub) ((L.listElements) (donelist appState))   --get the current count of tasks
+        total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState)) 
+        total_u = Vec.length $ Vec.filter (not . isSub) (L.listElements (uList appState)) 
+        total_m = Vec.length $ Vec.filter (not . isSub) (L.listElements (imList appState)) 
+        total_nn = Vec.length $ Vec.filter (not . isSub) (L.listElements (nnList appState)) 
+        undone_total = str $ show (total_mu + total_u + total_m + total_nn)
+        total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
-        ui =  C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
+        ui =  C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 30 $ B.borderWithLabel (str "Fantastic To-do") $ 
+                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
                                 B.hBorder,
                                 hBox [vBox [mubox,
                                             ubox,
@@ -90,10 +90,11 @@ drawUI appState = [ui]
     --                           , C.hCenter $ str "Press Esc to exit."
     --                           ]
 
-listDrawElement :: (Show a) => Bool -> a -> Widget Name
-listDrawElement _ a =
-    C.hCenter $ str (show a)
-
+listDrawElement :: Bool -> Task -> Widget Name
+listDrawElement _ task =
+    case task of 
+        SUB (_, _, _) -> str "  └── " <+> str (show task)
+        _ -> str (show task)
 -- listDrawElement :: Bool -> Task -> Widget Name  replace he current draw with this
 -- listDrawElement _ task =
 --         case task of
