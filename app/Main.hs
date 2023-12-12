@@ -121,13 +121,15 @@ appEvent appState (T.VtyEvent e) =
                                 M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
 
             V.EvKey (V.KChar '-') [] ->
-                case l^.(L.listSelectedL) of
+                case L.listSelectedElement l of
                     Nothing -> M.continue appState
-                    Just pos  -> 
-                        let
-                            updatedList = L.listRemove pos l
-                        in
-                            M.continue $ insertState index updatedList appState        
+                    Just (pos,task)  -> 
+                        if isSub task then 
+                            let
+                                updatedList = L.listRemove pos l
+                            in
+                                M.continue $ insertState index updatedList appState        
+                        else M.continue appState  
 
                 
             V.EvKey (V.KChar '4') [] ->
@@ -268,6 +270,12 @@ initialState = AppState {
 isSub :: Task -> Bool -- tell whether a task is a subtask
 isSub (SUB _) = True
 isSub _       = False
+
+-- this function takes into a list of task and a id, then return the indexs of all the main and sub tasks with that id
+getTasksId :: L.List Name Task -> Int -> [Int]
+getTasksId l id = let vecs = L.listElements l in go vecs id []
+    where 
+        go 
 
 getLen :: L.List Name Task -> Int
 getLen = length
