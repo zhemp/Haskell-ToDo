@@ -121,9 +121,31 @@ appEvent appState (T.VtyEvent e) =
                                 M.continue $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
                         Nothing ->
                                 M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-                --     let el = IMT (0, "this is my new String")
-                --         pos = Vec.length $ l^.(L.listElementsL)
-                --     in M.continue $ insertState index (L.listInsert pos el $ L.listInsert pos el l) appState
+
+            V.EvKey (V.KChar '-') [] ->
+                case l^.(L.listSelectedL) of
+                    Nothing -> M.continue appState
+                    Just pos  -> 
+                        let
+                            updatedList = L.listRemove pos l
+                        in
+                            M.continue $ insertState index updatedList appState        
+
+                
+            V.EvKey (V.KChar '4') [] ->
+                case l^.(L.listSelectedL) of
+                    Nothing -> M.continue appState
+                    Just pos  -> 
+                        let
+                            doneL       = donelist appState
+                            Just (pos, doneTask) = L.listSelectedElement l
+                            updatedList = L.listRemove pos l
+                            updatedDoneList = L.listInsert 0 doneTask doneL
+                        in
+                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+
+
+
 
             V.EvKey (V.KDown) [] ->
                 case l^.(L.listSelectedL) of
@@ -180,7 +202,7 @@ appEvent l _ = M.continue l
 type L1Task = (Int, String) --()
 
 
--- (SUB  (represent the id of its main task,  Bool shows whether the subtask has been done, String is whether it has been done))
+-- (SUB  (represent the id of its main task,  Bool shows whether the subtask has been done: True = done, False = todo, String is whether it has been done))
 data Task = 
    IMT L1Task
  | UT  L1Task
