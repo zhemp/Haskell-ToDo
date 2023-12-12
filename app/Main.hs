@@ -23,6 +23,7 @@ import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 import qualified Data.Foldable as Vector
 import qualified Data.IMap as Vector
+import qualified Data.Foldable as V
 
 
 
@@ -143,9 +144,11 @@ appEvent appState (T.VtyEvent e) =
                             maxId = getMaxId index appState
                             el = createMainTask index (maxId+1) ""
                             in 
-                            case l^.(L.listSelectedL) of
-                                Just pos ->
-                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                            case L.listSelectedElement l of
+                                Just (pos,task) ->
+                                    let newPos = pos + getTaskLen l (getTaskId task)
+                                    in
+                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo newPos $ L.listInsert newPos el l) (setMaxId index appState (maxId + 1))
                                 Nothing ->
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
 
@@ -313,6 +316,18 @@ data AppState = AppState {
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
 
+
+-- this function takes a list of tasks and a id then return the length of the current task
+getTaskLen :: L.List Name Task -> Int -> Int
+getTaskLen l idx = go (Vec.toList (L.listElements l )) idx 0
+    where 
+        go (h:t) id count = if getTaskId h == idx then go t idx (count+1)
+                                                   else go t idx count
+        go _     _  count = count
+
+
+
+-- This function takes a list of tasks and insert it in to the head of another list
 insertGL ::  [Task] -> L.List Name Task -> L.List Name Task
 insertGL v l = go (reverse v) l
     where 
