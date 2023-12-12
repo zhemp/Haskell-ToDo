@@ -148,6 +148,7 @@ appEvent appState (T.VtyEvent e) =
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
                                 Nothing ->
                                         M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+
                     V.EvKey (V.KChar '2') [] ->
                         case L.listSelectedElement l of
                             Nothing -> M.continue appState
@@ -193,10 +194,21 @@ appEvent appState (T.VtyEvent e) =
                                 let
                                     doneL = donelist appState
                                     Just (pos, doneTask) = L.listSelectedElement l
-                                    updatedList = L.listRemove pos l
-                                    updatedDoneList = L.listInsert 0 doneTask doneL
+                                    -- updatedList = L.listRemove pos l
+                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                    idx = getTaskId doneTask
+                                    
                                 in
-                                    M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                                    if isSub doneTask then 
+                                        let 
+                                            modifiedT = setTaskDone doneTask
+                                        in M.continue $ insertState index (replaceTask pos modifiedT l) appState
+                                    else 
+                                        let (doneTasks, updatedList) = getDelsTandNewL l idx
+                                            updatedDoneList = insertGL doneTasks doneL
+                                         in
+                                            M.continue $ insertState index updatedList (appState {donelist = updatedDoneList})
+                                            
 
 
 
@@ -285,6 +297,16 @@ data AppState = AppState {
     inputField :: Maybe String  --  used to store the input string
 }
 
+replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
+replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
+
+insertGL ::  [Task] -> L.List Name Task -> L.List Name Task
+insertGL v l = go (reverse v) l
+    where 
+        go (h:t) updatel = go t (L.listInsert 0 h updatel)
+        go _     updatel = updatel
+
+
 -- THis function takes the input string and appstate and return a updated appstate
 setInputField :: Maybe String -> AppState -> AppState
 setInputField s appState = appState { inputField = s }
@@ -326,7 +348,7 @@ initialState = AppState {
     status   = 0,
     imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg    (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
-    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, True, "line")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
+    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, False, "line1")),(SUB (0, False, "line2")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
     nnList   = L.list Nn     (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
     donelist = L.list Done   (Vec.empty) 0,
     curMaxId = [2,2,2,2,0],
@@ -337,6 +359,11 @@ isSub :: Task -> Bool -- tell whether a task is a subtask
 isSub (SUB _) = True
 isSub _       = False
 
+
+setTaskDone :: Task -> Task 
+setTaskDone = go 
+    where go (SUB (n,_,s)) = SUB (n,True,s)
+          go  other        = other
 getTaskId :: Task -> Int
 getTaskId = go 
     where 
@@ -346,18 +373,18 @@ getTaskId = go
         go (NNT (id, _)) = id
         go (SUB (id, _, _)) = id
 
--- this function takes into a list of task and a id, then return the deleted tasks (reverse order) and the updated l (correct order)
+-- this function takes into a list of task and a id, then return the deleted tasks (correct order) and the updated l (correct order)
 getDelsTandNewL :: L.List Name Task -> Int -> ([Task], L.List Name Task)
 getDelsTandNewL l id = let v = L.listElements l in go (Vec.toList v) id [] []
     where 
         go (h:t) id xs os =
             if curId == id
-                then go t id (h:xs) os
+                then go t id (setTaskDone h:xs) os
                 else go t id xs (h:os)
             where
                 curId = getTaskId h
 
-        go [] _ xs os = (xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l)
+        go [] _ xs os = (reverse xs, L.listReplace (Vec.fromList (reverse os)) (Just 0) l)
                         
 
 getLen :: L.List Name Task -> Int
