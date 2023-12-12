@@ -114,21 +114,34 @@ appEvent appState (T.VtyEvent e) =
         Just input -> 
              case e of
                 V.EvKey V.KEnter [] -> 
-                    -- complete the input, and add it to the list
+                    -- -- complete the input, and add it to the list
+                    -- let 
+                    --     el = createMainTask index (maxId+1) input 
+                    --     maxId = getMaxId index appState
+                    -- in
+                    --     case l^.(L.listSelectedL) of
+                    --         Just pos ->
+                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                    --         Nothing ->
+                    --                 M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+                    M.continue $ appState { inputField = Nothing }
+                
+                V.EvKey (V.KChar c) [] ->
+                    -- add the char to the inputField
+                    -- M.continue $ appState { inputField = Just (input ++ [c]) }
+                    -- try to visualize the inputField when receiving input, using ListInsert
                     let 
-                        el = createMainTask index (maxId+1) input 
+                        el = createMainTask index maxId (input ++ [c])
                         maxId = getMaxId index appState
                     in
                         case l^.(L.listSelectedL) of
                             Just pos ->
-                                    M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                                    M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (pos + 1)  $ L.listInsert pos el $ L.listRemove pos l) appState
                             Nothing ->
-                                    M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
-
+                                    M.continue $ setInputField (Just (input ++ [c])) $ insertState index (L.listMoveTo (0 + 1) $ L.listInsert 0 el $ L.listRemove 0 l) appState
                 
-                V.EvKey (V.KChar c) [] ->
-                    -- add the char to the inputField
-                    M.continue $ appState { inputField = Just (input ++ [c]) }
+                -- any other key pressed, we will not handle it
+                _ -> M.continue appState
 
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
@@ -145,7 +158,17 @@ appEvent appState (T.VtyEvent e) =
                     --                     M.continue $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
                     
                     V.EvKey (V.KChar '+') [] ->
-                        M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
+                        -- M.continue $ appState { inputField = Just "" } -- set the inputField to empty string
+                        let 
+                            maxId = getMaxId index appState
+                            el = createMainTask index (maxId+1) ""
+                            in 
+                            case l^.(L.listSelectedL) of
+                                Just pos ->
+                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) (setMaxId index appState (maxId + 1))
+                                Nothing ->
+                                        M.continue $ setInputField (Just "") $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) (setMaxId index appState (maxId + 1))
+                        
 
                     -- V.EvKey (V.KChar '-') [] ->
                     --     case l^.(L.listSelectedL) of
@@ -221,7 +244,9 @@ appEvent appState (T.VtyEvent e) =
 
                     V.EvKey V.KEsc [] -> M.halt appState
 
-                    otherEvent -> M.continue appState
+                    -- any other key pressed, we will not handle it
+                    _ -> M.continue appState
+                    
                 -- where
                 --     nextElement :: Vec.Vector Char -> Char
                 --     nextElement v = fromMaybe '?' $ Vec.find (flip Vec.notElem v) (Vec.fromList ['a' .. 'z'])
