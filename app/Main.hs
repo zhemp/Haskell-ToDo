@@ -144,11 +144,11 @@ appEvent appState (T.VtyEvent e) =
                             Just (pos, task) ->
                                 
                                     if curStatus == 0 then 
-                                        let maxId = getMaxId index noErrApST
+                                        let maxId = getMaxId noErrApST
                                             el = createMainTask index (maxId+1) input
                                             newPos = getTaskEndIndex l (getTaskId task)
                                         in 
-                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo newPos $ L.listInsert newPos el l) $ setMaxId index noErrApST (maxId+1)
+                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo newPos $ L.listInsert newPos el l) $ setMaxId  noErrApST (maxId+1)
                                     else if curStatus == 1 then 
                                         let idx = getTaskId task
                                             el = createSubTask idx input
@@ -157,10 +157,10 @@ appEvent appState (T.VtyEvent e) =
                                     else M.continue noErrApST
                             Nothing  ->  
                                 if curStatus == 0 then 
-                                        let maxId = getMaxId index noErrApST
+                                        let maxId = getMaxId noErrApST
                                             el = createMainTask index (maxId+1) input
                                         in 
-                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) $ setMaxId index noErrApST (maxId+1)
+                                            M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) $ setMaxId noErrApST (maxId+1)
                                     else M.continue noErrApST
 
                 V.EvKey V.KEsc [] ->
@@ -206,26 +206,28 @@ appEvent appState (T.VtyEvent e) =
 
 
                     V.EvKey (V.KChar '4') [] ->
-                        case l^.(L.listSelectedL) of
-                            Nothing -> M.continue noErrApST
-                            Just pos  -> 
-                                let
-                                    doneL = donelist noErrApST
-                                    Just (pos, doneTask) = L.listSelectedElement l
-                                    -- updatedList = L.listRemove pos l
-                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
-                                    idx = getTaskId doneTask
-                                    
-                                in
-                                    if isSub doneTask then 
-                                        let 
-                                            modifiedT = setTaskDone doneTask
-                                        in M.continue $ insertState index (replaceTask pos modifiedT l) noErrApST
-                                    else 
-                                        let (doneTasks, updatedList) = getDelsTandNewL l idx
-                                            updatedDoneList = insertGL doneTasks doneL
-                                         in
-                                            M.continue $ insertState index updatedList (noErrApST {donelist = updatedDoneList})
+                        if index == 5 then M.continue noErrApST
+                        else 
+                            case l^.(L.listSelectedL) of
+                                Nothing -> M.continue noErrApST
+                                Just pos  -> 
+                                    let
+                                        doneL = donelist noErrApST
+                                        Just (pos, doneTask) = L.listSelectedElement l
+                                        -- updatedList = L.listRemove pos l
+                                        -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                        idx = getTaskId doneTask
+                                        
+                                    in
+                                        if isSub doneTask then 
+                                            let 
+                                                modifiedT = setTaskDone doneTask
+                                            in M.continue $ insertState index (replaceTask pos modifiedT l) noErrApST
+                                        else 
+                                            let (doneTasks, updatedList) = getDelsTandNewL l idx
+                                                updatedDoneList = insertGL doneTasks doneL
+                                            in
+                                                M.continue $ insertState index updatedList (noErrApST {donelist = updatedDoneList})
 
 
                     V.EvKey (V.KChar '5') [] ->
@@ -270,10 +272,11 @@ appEvent appState (T.VtyEvent e) =
                         case l^.(L.listSelectedL) of
                             Just pos ->
                                 let len = getLen l - 1
-                                in if pos == len
-                                    then if index /= 4 && index /= 5
-                                        then M.continue (noErrApST {pointer = index + 1}) 
-                                        else M.continue noErrApST
+                                in  if pos == len then
+                                        if index == 5 then M.continue $ insertState index (L.listMoveTo 0 l) noErrApST
+                                        else if index /= 4 
+                                            then M.continue (noErrApST {pointer = index + 1}) 
+                                            else M.continue noErrApST
                                     else M.continue $ insertState index (L.listMoveBy 1 l) noErrApST
                             Nothing ->
                                     if index < 4 then M.continue (noErrApST {pointer = index + 1}) 
@@ -282,11 +285,12 @@ appEvent appState (T.VtyEvent e) =
                     V.EvKey (V.KUp) [] ->
                         case l^.(L.listSelectedL) of
                             Just pos ->
-                                if pos == 0
-                                    then if index /= 1 && index /= 5
+                                if pos == 0 then
+                                    if index == 5 then M.continue $ insertState index (L.listMoveTo (getLen l) l) noErrApST
+                                    else if index /= 1 
                                                 then M.continue (noErrApST {pointer = index - 1})
                                                 else M.continue noErrApST
-                                    else M.continue $ insertState index (L.listMoveBy (-1) l) noErrApST
+                                else M.continue $ insertState index (L.listMoveBy (-1) l) noErrApST
                             Nothing ->
                                 if index > 1 then M.continue (noErrApST {pointer = index - 1}) 
                                 else M.continue noErrApST 
@@ -350,12 +354,24 @@ data AppState = AppState {
     muList    :: L.List Name Task, 
     nnList    :: L.List Name Task,
     donelist  :: L.List Name Task,
-    curMaxId  :: [Int],
+    curMaxId  :: Int,
     inputField :: Maybe String,  --  used to store the input string
     errorMessage :: Maybe String
 }
 
-
+initialState :: AppState
+initialState = AppState {
+    pointer  = 1,
+    status   = 0,
+    imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
+    uList    = L.list Urg    (Vec.fromList [(UT (3, "test")), (SUB (3, True, "line")), (UT (4, "test")), (UT (5, "test"))]) 0,
+    muList   = L.list Impurg (Vec.fromList [(MUT (6, "test")), (SUB (6, False, "line1")),(SUB (6, False, "line2")), (MUT (7, "test")), (MUT (8, "test"))]) 0,
+    nnList   = L.list Nn     (Vec.fromList [(NNT (9, "test")), (SUB (9, True, "line")), (NNT (10, "test")), (NNT (11, "test"))]) 0,
+    donelist = L.list Done   (Vec.empty) 0,
+    curMaxId = 11,
+    inputField = Nothing,
+    errorMessage = Nothing
+        }
 
 -- replace the tasks at the appointed positon of the given list using the given task
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
@@ -432,19 +448,7 @@ createMainTask = go
 createSubTask :: Int -> String -> Task
 createSubTask idx s = SUB (idx, False, s)
 
-initialState :: AppState
-initialState = AppState {
-    pointer  = 1,
-    status   = 0,
-    imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
-    uList    = L.list Urg    (Vec.fromList [(UT (0, "test")), (SUB (0, True, "line")), (UT (1, "test")), (UT (2, "test"))]) 0,
-    muList   = L.list Impurg (Vec.fromList [(MUT (0, "test")), (SUB (0, False, "line1")),(SUB (0, False, "line2")), (MUT (1, "test")), (MUT (2, "test"))]) 0,
-    nnList   = L.list Nn     (Vec.fromList [(NNT (0, "test")), (SUB (0, True, "line")), (NNT (1, "test")), (NNT (2, "test"))]) 0,
-    donelist = L.list Done   (Vec.empty) 0,
-    curMaxId = [2,2,2,2,0],
-    inputField = Nothing,
-    errorMessage = Nothing
-        }
+
 
 isSub :: Task -> Bool -- tell whether a task is a subtask
 isSub (SUB _) = True
@@ -488,21 +492,16 @@ getLen :: L.List Name Task -> Int
 getLen = length
 
 --  given pointer index,  state  return the maxId in the list that index pointed to
-getMaxId ::  Int -> AppState -> Int
-getMaxId index s = curMaxId s !! (index -1 )
+getMaxId ::  AppState -> Int
+getMaxId  s = curMaxId s
 
 
 
 -- given index, appstate, and new maxId   return a updated appstate
 -- here the reason why we decrease the index by 1 is because the gap between the index of 5 task list and index of general list
-setMaxId :: Int -> AppState -> Int -> AppState
-setMaxId index s newMaxId = s { curMaxId = udList (curMaxId s) (index-1) newMaxId}
+setMaxId :: AppState -> Int -> AppState
+setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
-
-udList :: (Eq a1, Num a1) => [a2] -> a1 -> a2 -> [a2]
-udList (h:t) 0 v = v:t
-udList (h:t) id v = h: udList t (id-1) v
-udList _ _ v = [v]
 
 customAttr :: A.AttrName
 customAttr = L.listSelectedAttr <> "custom"
