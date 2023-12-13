@@ -18,7 +18,7 @@ import qualified Brick.Types as T
 import Brick.Util (fg, on)
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Center as C
-import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), (<=>),hBox, fill)
+import Brick.Widgets.Core (hLimit, str, vBox, vLimit, withAttr, (<+>), (<=>),hBox, fill, emptyWidget)
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 import qualified Data.Foldable as Vector
@@ -30,7 +30,8 @@ import qualified Data.Foldable as V
 
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
-    where 
+    where
+        errmsg = errorMessage appState
         focus = pointer appState --get the current focused list id
 
         total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState))
@@ -67,20 +68,18 @@ drawUI appState = [ui]
                                         doneBox
                                     ],
                                 B.hBorder,
-                                -- hBox[
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
-                                -- ]
                                 vLimit 3 $ vBox [
-                                    hBox[C.center (str "Add Main Task"), B.vBorder, C.center (str "Add Sub Task"), B.vBorder, C.center (str "Delete"), B.vBorder, C.center (str "Mark as Done"), B.vBorder, C.center (str "Mark as UDone") ],
+                                    hBox[C.center (str "Add Main Task"), B.vBorder, C.center (str "Add Sub Task"), B.vBorder, C.center (str "Delete"), B.vBorder, C.center (str "Mark as Done"), B.vBorder, C.center (str "Mark as Undone") ],
                                     B.hBorder,
                                     hBox[C.center (str "1"), B.vBorder, C.center (str "2"), B.vBorder, C.center (str "-"), B.vBorder, C.center (str "4"), B.vBorder, C.center (str "5")]
-                                ]
+                                ],
+                                case errmsg of
+                                    Just err -> vLimit 3 $ vBox[
+                                                        C.center $ str err
+                                                        , B.hBorder
+                                                        , C.center $ str "Press any key to ignore this error."
+                                                    ]
+                                    Nothing -> emptyWidget
                                 ]
             Just input -> C.hCenter $ C.vCenter $ hLimit 131 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
                 C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
@@ -93,15 +92,6 @@ drawUI appState = [ui]
                                         doneBox
                                     ],
                                 B.hBorder,
-                                -- hBox[
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")],
-                                --     B.vBorder,
-                                --     vLimit 3 $ vBox [C.center (str "add"), B.hBorder, C.center (str "+")]
-                                -- ]
                                 vLimit 3 $ vBox [
                                     hBox[C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "----"), B.vBorder, C.center (str "Enter")],
                                     B.hBorder,
@@ -110,6 +100,14 @@ drawUI appState = [ui]
                                 , case input of 
                                     "" -> str "Please input your task content!"
                                     _ -> str input
+                                ,
+                                case errmsg of
+                                    Just err -> vLimit 3 $ vBox[
+                                                        C.center $ str err
+                                                        , B.hBorder
+                                                        , C.center $ str "Press any key to ignore this error."
+                                                    ]
+                                    Nothing -> emptyWidget
                                 ]
             
 
@@ -121,8 +119,8 @@ listDrawElement _ task =
 -- listDrawElement :: Bool -> Task -> Widget Name --replace he current draw with this
 -- listDrawElement _ task =
 --         case task of
---         SUB (_, done, content) -> if done then str "  └── " <+> str "X " <+> str content
---                                             else str "  └── " <+> str content
+--         SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
+--                                             else str "  └── " <+> str content 
 --         IMT (_, content) -> str content
 --         UT  (_, content) -> str content
 --         MUT (_, content) -> str content
