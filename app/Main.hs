@@ -2,6 +2,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 module Main where
 
 import Control.Monad (void)
@@ -52,15 +53,15 @@ drawUI appState = [ui]
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
         mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
-                L.renderList (listDrawElement index_map) (focus == 1) (muList appState)
+                withAttr muAttr $ L.renderList (listDrawElement index_map (focus == 1)) (focus == 1) (muList appState)
         ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
-                L.renderList (listDrawElement index_map) (focus == 2) (uList appState)
+                withAttr uAttr $ L.renderList (listDrawElement index_map (focus == 2)) (focus == 2) (uList appState)
         mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
-                L.renderList (listDrawElement index_map) (focus == 3) (imList appState)
+                withAttr mAttr $ L.renderList (listDrawElement index_map (focus == 3)) (focus == 3) (imList appState)
         nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
-                L.renderList (listDrawElement index_map) (focus == 4) (nnList appState)
+                withAttr nnAttr $ L.renderList (listDrawElement index_map (focus == 4)) (focus == 4) (nnList appState)
         doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
-                L.renderList (listDrawElement index_map) (focus == 5) (donelist appState)
+                L.renderList (listDrawElement index_map (focus == 5)) (focus == 5) (donelist appState)
 
         ui = case inputField appState of
             Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
@@ -123,25 +124,47 @@ drawUI appState = [ui]
 --         SUB (_, _, _) -> str "  └── " <+> str (show task)
 --         _ -> str (show task)
 
-listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name --replace he current draw with this
-listDrawElement map _ task =
+listDrawElement :: M.Map Int Int -> Bool -> Bool -> Task -> Widget Name --replace he current draw with this
+listDrawElement map focused selected task =
         case task of
-        SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
-                                            else str "  └── " <+> str content 
+        SUB (_, done, content) -> if selected && focused then
+                                        withAttr selectedFocusedAttr $  if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
+                                                    else str "  └── " <+> str content 
+                                    else
+                                        if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
+                                                    else str "  └── " <+> str content 
         IMT (id, content) -> let Just index = (M.lookup id map) 
-                            in str (show index) <+> str "." <+> str content
+                            in if selected && focused then withAttr selectedFocusedAttr $ str (show index) <+> str "." <+> str content
+                                                        else str (show index) <+> str "." <+> str content
         UT  (id, content) -> let Just index = (M.lookup id map) 
-                            in str (show index) <+> str "." <+> str content
+                            in if selected && focused then withAttr selectedFocusedAttr $ str (show index) <+> str "." <+> str content
+                                                        else str (show index) <+> str "." <+> str content
         MUT (id, content) -> let Just index = (M.lookup id map) 
-                            in str (show index) <+> str "." <+> str content
+                            in if selected && focused then withAttr selectedFocusedAttr $ str (show index) <+> str "." <+> str content
+                                                        else str (show index) <+> str "." <+> str content
         NNT (id, content) -> let Just index = (M.lookup id map) 
-                            in str (show index) <+> str "." <+> str content
+                            in if selected && focused then withAttr selectedFocusedAttr $ str (show index) <+> str "." <+> str content
+                                                        else str (show index) <+> str "." <+> str content
 
 
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
+appEvent as (T.VtyEvent (V.EvKey (V.KChar 'm') [])) = if status as == 5 then M.continue $ as {
+                                                                                                pointer  = 1,
+                                                                                                status   = 0,
+                                                                                                imList   = L.list Imp    (Vec.empty) 0,
+                                                                                                uList    = L.list Urg    (Vec.empty) 0,
+                                                                                                muList   = L.list Impurg (Vec.empty) 0,
+                                                                                                nnList   = L.list Nn     (Vec.empty) 0,
+                                                                                                donelist = L.list Done   (Vec.empty) 0,
+                                                                                                curMaxId = 0,
+                                                                                                inputField = Nothing,       
+                                                                                                errorMessage = Nothing
+                                                                                            }
+                                                                                            
+                                                                        else M.continue $ as
 appEvent appState (T.VtyEvent e) = 
-    let noErrApST = appState {errorMessage = Nothing}
+    let noErrApST = appState {errorMessage = Nothing,status =0}
     in
     case inputField noErrApST of
         --  if the inputField is not empty, then we will handle the input
@@ -153,7 +176,6 @@ appEvent appState (T.VtyEvent e) =
                     in 
                         case L.listSelectedElement l of
                             Just (pos, task) ->
-                                
                                     if curStatus == 0 then 
                                         let maxId = getMaxId noErrApST
                                             el = createMainTask index (maxId+1) input
@@ -165,6 +187,8 @@ appEvent appState (T.VtyEvent e) =
                                             el = createSubTask idx input
                                         in 
                                             M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) noErrApST
+                                    else if curStatus == 2 then 
+                                        M.continue $ setInputField Nothing $ insertState index (replaceTask pos (changeTaskContent task input) l) noErrApST
                                     else M.continue noErrApST
                             Nothing  ->  
                                 if curStatus == 0 then 
@@ -214,6 +238,11 @@ appEvent appState (T.VtyEvent e) =
                                 M.continue $ setInputField (Just "") noErrApST {status = 1}
                             Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
 
+                    V.EvKey (V.KChar '3') [] ->
+                        case L.listSelectedElement l of
+                            Just (pos,task)  -> 
+                                M.continue $ setInputField (Just (getContent task)) noErrApST {status = 2}
+                            Nothing -> M.continue $ noErrApST {errorMessage = Just "To modify, you have to at least choose one task"}
 
 
                     V.EvKey (V.KChar '4') [] ->
@@ -252,7 +281,6 @@ appEvent appState (T.VtyEvent e) =
                                     -- updatedDoneList = L.listInsert 0 doneTask doneL
                                     idx = getTaskId doneTask
                                     
-                                    
                                 in
                                     if isSub doneTask || index < 5 then M.continue $ noErrApST
                                     else let (tasks, updateDoneL) = getDelsTandNewL doneL idx 
@@ -262,7 +290,7 @@ appEvent appState (T.VtyEvent e) =
                                              updatedTodoL = insertGL toDoTasks $ getList pointedListIndex noErrApST
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
-                                            
+                    V.EvKey (V.KChar '+') [] -> M.continue $ noErrApST {theme = theme noErrApST +1}                        
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
                             Nothing -> M.continue noErrApST
@@ -277,8 +305,8 @@ appEvent appState (T.VtyEvent e) =
                                         (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
                                         M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
-                    
-
+                    V.EvKey (V.KChar 'r') [] ->
+                        M.continue $ noErrApST { status=5, errorMessage = Just "If you are sure to clear all records, press 'm'"}
                     V.EvKey (V.KDown) [] ->
                         case l^.(L.listSelectedL) of
                             Just pos ->
@@ -358,8 +386,9 @@ data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
 
 data AppState = AppState {
     pointer   :: Int,
-    -- 0 is adding main task, 1 is for adding sub task
+    -- 0 is adding main task, 1 is for adding sub task， 2 is for modifying task
     status    :: Int,
+    theme     :: Int,
     imList    :: L.List Name Task,
     uList     :: L.List Name Task, 
     muList    :: L.List Name Task, 
@@ -392,6 +421,7 @@ instance ToJSON AppState where
     toJSON  appState =object [
         "pointer" .= pointer appState,
         "status" .= status appState,
+        "theme" .= theme appState,
         "imList" .= L.listElements (imList appState),
         "uList" .= L.listElements (uList appState),
         "muList" .= L.listElements (muList appState),
@@ -414,9 +444,11 @@ instance FromJSON AppState where
         curMaxId <- o .: "curMaxId"
         inputField <- o .: "inputField"
         errorMessage <- o .: "errorMessage"
+        theme <- o .: "theme"
         return AppState {
             pointer = pointer,
             status = status,
+            theme = theme,
             imList = imList,
             uList = uList,
             muList = muList,
@@ -441,9 +473,11 @@ importState filePath = do
 
 
 initialState :: AppState
+
 initialState = AppState {
     pointer  = 1,
     status   = 0,
+    theme    = 0,
     imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg    (Vec.fromList [(UT (3, "test")), (SUB (3, True, "line")), (UT (4, "test")), (UT (5, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (6, "test")), (SUB (6, False, "line1")),(SUB (6, False, "line2")), (MUT (7, "test")), (MUT (8, "test"))]) 0,
@@ -453,6 +487,9 @@ initialState = AppState {
     inputField = Nothing,
     errorMessage = Nothing
         }
+
+
+
 
 -- this function takes into an appstate and generate a id to index map, 
 -- the map takes a id of maintask and return the rank of the maintask in corresponding list.
@@ -485,6 +522,24 @@ genIdToRankM appState =
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
 
+
+changeTaskContent :: Task -> String -> Task 
+changeTaskContent = go
+    where 
+        go (IMT (n, s)) s'    = (IMT (n, s'))   
+        go (UT  (n, s)) s'    = (UT  (n, s'))  
+        go (MUT (n, s)) s'    = (MUT (n, s'))  
+        go (NNT (n, s)) s'    = (NNT (n, s'))  
+        go (SUB (n, b, s)) s' = (SUB (n, b, s'))  
+-- this function takes into a task and return a string
+getContent :: Task -> String 
+getContent = go 
+    where 
+        go    (IMT (_, s)) = s
+        go    (UT  (_, s)) = s
+        go    (MUT (_, s)) = s
+        go    (NNT (_, s)) = s
+        go    (SUB (_, _, s)) = s 
 
 getPriority :: Task -> Int
 getPriority (MUT _) = 1
@@ -611,14 +666,53 @@ setMaxId :: AppState -> Int -> AppState
 setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
-customAttr :: A.AttrName
-customAttr = L.listSelectedAttr <> "custom"
-
-theMap :: A.AttrMap
-theMap = A.attrMap V.defAttr
-    [ (L.listSelectedFocusedAttr, V.black `on` V.white)
-    ,(L.listAttr,    V.white `on` V.black)
+lightThemeMap :: A.AttrMap
+lightThemeMap = A.attrMap V.defAttr -- white Theme
+    [ (muAttr, V.black `on` (V.rgbColor 251 196 171)) 
+    , (uAttr,  V.black `on` (V.rgbColor 248 173 157))  
+    , (mAttr,  V.black `on` (V.rgbColor 244 151 142))  
+    , (nnAttr, V.black `on` (V.rgbColor 240 128 128))  
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
     ]
+
+darkThemeMap :: A.AttrMap
+darkThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.white `on` (V.rgbColor 160 82 45))   -- Example colors
+    , (uAttr,  V.white `on` (V.rgbColor 0 0 139))  
+    , (mAttr,  V.white `on` (V.rgbColor 0 100 0))  
+    , (nnAttr, V.white `on` (V.rgbColor 47 79 79))  
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    ]
+
+defaultThemeMap :: A.AttrMap
+defaultThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.defAttr)   -- Example colors
+    , (uAttr,  V.defAttr)  
+    , (mAttr,  V.defAttr)  
+    , (nnAttr, V.defAttr)  
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    ]
+
+-- defaultThemeMap :: A.AttrMap
+-- defaultThemeMap = A.attrMap V.defAttr -- white Theme
+--     [ (muAttr, V.black `on` (V.rgbColor 251 196 171))   -- Example colors
+--     , (uAttr,  V.black `on` (V.rgbColor 248 173 157))  
+--     , (mAttr,  V.black `on` (V.rgbColor 244 151 142))  
+--     , (nnAttr, V.black `on` (V.rgbColor 240 128 128))  
+--     , (selectedFocusedAttr, V.black `on` V.brightWhite)
+--     ]
+
+muAttr, uAttr, mAttr, nnAttr, selectedFocusedAttr:: A.AttrName
+muAttr = A.attrName "muListAttr"
+uAttr  = A.attrName "uListAttr"
+mAttr  = A.attrName "mListAttr"
+nnAttr = A.attrName "nnListAttr"
+selectedFocusedAttr = A.attrName "selectedFocused"
+
+-- selectTheme :: AppState -> A.AttrMap
+-- selectTheme appState = 
+--     let currentTheme = theme appState
+--     in if currentTheme == 0 then defaultThemeMap else if currentTheme == 1 then lightThemeMap else darkThemeMap
 
 theApp :: M.App AppState e Name
 theApp = M.App
@@ -626,7 +720,11 @@ theApp = M.App
     , M.appChooseCursor = M.neverShowCursor
     , M.appHandleEvent = appEvent
     , M.appStartEvent = return
-    , M.appAttrMap = const theMap
+    , M.appAttrMap = \s -> let value = theme s in 
+                        case value `mod` 3 of 
+                            0 -> defaultThemeMap
+                            1 -> lightThemeMap
+                            2 -> darkThemeMap
     }
 
 
