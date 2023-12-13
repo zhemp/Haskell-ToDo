@@ -4,7 +4,7 @@
 module Main where
 
 import Control.Monad (void)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 -- #if !(MIN_VERSION_base(4,11,0))
 -- import Data.Monoid
 -- #endif
@@ -24,6 +24,8 @@ import qualified Data.Vector as Vec
 import qualified Data.Foldable as Vector
 import qualified Data.IMap as Vector
 import qualified Data.Foldable as V
+import qualified Data.Map as M
+
 
 
 
@@ -372,6 +374,33 @@ initialState = AppState {
     inputField = Nothing,
     errorMessage = Nothing
         }
+
+-- this function takes into an appstate and generate a id to index map, 
+-- the map takes a id of maintask and return the rank of the maintask in corresponding list.
+-- Helper function to process a single L.List Name Task and extract main tasks with their indexes
+processList :: L.List Name Task -> M.Map Int Int
+processList taskList = M.fromList $ catMaybes $ zipWith extractTaskId [0..] (Vec.toList $ L.listElements taskList)
+  where
+    extractTaskId idx (IMT (id, _)) = Just (id, idx)
+    extractTaskId idx (UT  (id, _)) = Just (id, idx)
+    extractTaskId idx (MUT (id, _)) = Just (id, idx)
+    extractTaskId idx (NNT (id, _)) = Just (id, idx)
+    extractTaskId _   (SUB _)       = Nothing  -- Ignore SUB tasks
+
+-- The main function to generate id to index map
+genIdToRankM :: AppState -> M.Map Int Int
+genIdToRankM appState =
+  M.unions [
+    processList (imList appState),
+    processList (uList appState),
+    processList (muList appState),
+    processList (nnList appState),
+    processList (donelist appState)
+  ]
+
+-- Example usage
+-- let idToRankMap = genIdToRankM initialState
+-- M.lookup 0 idToRankMap -- For example, to find the rank of task with ID 0
 
 -- replace the tasks at the appointed positon of the given list using the given task
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task

@@ -28,6 +28,7 @@ dependencies:
 - vector
 - microlens-mtl
 - microlens
+- containers
 
 extra-deps:
   - vty-6.1

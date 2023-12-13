@@ -34,6 +34,7 @@ library
   build-depends:
       base >=4.7 && <5
     , brick <1
+    , containers
     , microlens
     , microlens-mtl
     , mtl
@@ -54,6 +55,7 @@ executable todoList-exe
   build-depends:
       base >=4.7 && <5
     , brick <1
+    , containers
     , microlens
     , microlens-mtl
     , mtl
@@ -76,6 +78,7 @@ test-suite todoList-test
   build-depends:
       base >=4.7 && <5
     , brick <1
+    , containers
     , microlens
     , microlens-mtl
     , mtl
