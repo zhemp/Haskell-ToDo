@@ -29,6 +29,9 @@ dependencies:
 - microlens-mtl
 - microlens
 - containers
+- aeson
+- text
+- bytestring
 
 extra-deps:
   - vty-6.1

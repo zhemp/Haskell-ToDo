@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Main where
 
@@ -25,8 +26,10 @@ import qualified Data.Foldable as Vector
 import qualified Data.IMap as Vector
 import qualified Data.Foldable as V
 import qualified Data.Map as M
-
-
+import Data.Aeson
+import GHC.Generics (Generic)
+import qualified Data.ByteString.Lazy as B
+import Data.ByteString.Lazy (pack, unpack)
 
 
 
@@ -365,7 +368,77 @@ data AppState = AppState {
     curMaxId  :: Int,
     inputField :: Maybe String,  --  used to store the input string
     errorMessage :: Maybe String
-}
+} deriving (Generic, Show)
+
+instance ToJSON Task where
+    toJSON (IMT (id, content)) = object ["type" .= ("IMT" :: String), "id" .= id, "content" .= content]
+    toJSON (UT (id, content)) = object ["type" .= ("UT" :: String), "id" .= id, "content" .= content]
+    toJSON (MUT (id, content)) = object ["type" .= ("MUT" :: String), "id" .= id, "content" .= content]
+    toJSON (NNT (id, content)) = object ["type" .= ("NNT" :: String), "id" .= id, "content" .= content] 
+    toJSON (SUB (id, done, content)) = object ["type" .= ("SUB" :: String), "id" .= id, "done" .= done, "content" .= content]  
+
+instance FromJSON Task where
+    parseJSON = withObject "Task" $ \o -> do
+        t <- o .: "type"
+        case t :: String of
+            "IMT" -> IMT <$> ((,) <$> o .: "id" <*> o .: "content")
+            "UT" -> UT <$> ((,) <$> o .: "id" <*> o .: "content")
+            "MUT" -> MUT <$> ((,) <$> o .: "id" <*> o .: "content")
+            "NNT" -> NNT <$> ((,) <$> o .: "id" <*> o .: "content")
+            "SUB" -> SUB <$> ((,,) <$> o .: "id" <*> o .: "done" <*> o .: "content")
+            _ -> fail "Unknown type"
+
+instance ToJSON AppState where
+    toJSON  appState =object [
+        "pointer" .= pointer appState,
+        "status" .= status appState,
+        "imList" .= L.listElements (imList appState),
+        "uList" .= L.listElements (uList appState),
+        "muList" .= L.listElements (muList appState),
+        "nnList" .= L.listElements (nnList appState),
+        "donelist" .= L.listElements (donelist appState),
+        "curMaxId" .= curMaxId appState,
+        "inputField" .= inputField appState,
+        "errorMessage" .= errorMessage appState
+        ]
+
+instance FromJSON AppState where
+    parseJSON = withObject "AppState" $ \o -> do
+        pointer <- o .: "pointer"
+        status <- o .: "status"
+        imList <- L.list Imp <$> o .: "imList" <*> pure 1
+        uList <- L.list Urg <$> o .: "uList" <*> pure 1
+        muList <- L.list Impurg <$> o .: "muList" <*> pure 1
+        nnList <- L.list Nn <$> o .: "nnList" <*> pure 1
+        donelist <- L.list Done <$> o .: "donelist" <*> pure 1
+        curMaxId <- o .: "curMaxId"
+        inputField <- o .: "inputField"
+        errorMessage <- o .: "errorMessage"
+        return AppState {
+            pointer = pointer,
+            status = status,
+            imList = imList,
+            uList = uList,
+            muList = muList,
+            nnList = nnList,
+            donelist = donelist,
+            curMaxId = curMaxId,
+            inputField = inputField,
+            errorMessage = errorMessage
+        }
+
+
+
+
+exportState :: AppState -> FilePath -> IO ()
+exportState appState filePath =     
+    B.writeFile filePath (encode appState)
+
+importState :: FilePath -> IO (Maybe AppState)
+importState filePath = do
+    file <- B.readFile filePath
+    return $ decode file
+
 
 initialState :: AppState
 initialState = AppState {
@@ -560,4 +633,12 @@ theApp = M.App
 
 
 main :: IO ()
-main = void $ M.defaultMain theApp initialState
+main =  do
+    let filePath = "state.json"
+    exportState initialState filePath
+    maybeAppState <- importState filePath
+    case maybeAppState of
+        Just appState -> void $ M.defaultMain theApp appState
+        Nothing -> void $ M.defaultMain theApp initialState
+    
+
