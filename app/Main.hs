@@ -114,24 +114,25 @@ drawUI appState = [ui]
                                 ]
             
 
-listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name
-listDrawElement map _ task =
-    case task of 
-        SUB (_, _, _) -> str "  └── " <+> str (show task)
-        _ -> str (show task)
--- listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name --replace he current draw with this
+-- listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name
 -- listDrawElement map _ task =
---         case task of
---         SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
---                                             else str "  └── " <+> str content 
---         IMT (id, content) -> let Just index = (M.lookup id map) 
---                             in str (show index) <+> str "." <+> str content
---         UT  (id, content) -> let Just index = (M.lookup id map) 
---                             in str (show index) <+> str "." <+> str content
---         MUT (id, content) -> let Just index = (M.lookup id map) 
---                             in str (show index) <+> str "." <+> str content
---         NNT (id, content) -> let Just index = (M.lookup id map) 
---                             in str (show index) <+> str "." <+> str content
+--     case task of 
+--         SUB (_, _, _) -> str "  └── " <+> str (show task)
+--         _ -> str (show task)
+
+listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name --replace he current draw with this
+listDrawElement map _ task =
+        case task of
+        SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
+                                            else str "  └── " <+> str content 
+        IMT (id, content) -> let Just index = (M.lookup id map) 
+                            in str (show index) <+> str "." <+> str content
+        UT  (id, content) -> let Just index = (M.lookup id map) 
+                            in str (show index) <+> str "." <+> str content
+        MUT (id, content) -> let Just index = (M.lookup id map) 
+                            in str (show index) <+> str "." <+> str content
+        NNT (id, content) -> let Just index = (M.lookup id map) 
+                            in str (show index) <+> str "." <+> str content
 
 
 
@@ -384,13 +385,13 @@ initialState = AppState {
 -- the map takes a id of maintask and return the rank of the maintask in corresponding list.
 -- Helper function to process a single L.List Name Task and extract main tasks with their indexes
 processList :: L.List Name Task -> M.Map Int Int
-processList taskList = M.fromList $ catMaybes $ zipWith extractTaskId [0..] (Vec.toList $ L.listElements taskList)
+processList taskList = M.fromList $ catMaybes $ zipWith extractTaskId [1..] (Vec.toList $ Vec.filter (not . isSub) $ L.listElements taskList)
   where
     extractTaskId idx (IMT (id, _)) = Just (id, idx)
     extractTaskId idx (UT  (id, _)) = Just (id, idx)
     extractTaskId idx (MUT (id, _)) = Just (id, idx)
     extractTaskId idx (NNT (id, _)) = Just (id, idx)
-    extractTaskId _   (SUB _)       = Nothing  -- Ignore SUB tasks
+    _       = Nothing  -- Ignore SUB tasks
 
 -- The main function to generate id to index map
 genIdToRankM :: AppState -> M.Map Int Int
