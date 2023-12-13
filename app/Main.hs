@@ -390,7 +390,7 @@ initialState :: AppState
 initialState = AppState {
     pointer  = 1,
     status   = 0,
-    theme    = 2,
+    theme    = 0,
     imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg    (Vec.fromList [(UT (3, "test")), (SUB (3, True, "line")), (UT (4, "test")), (UT (5, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (6, "test")), (SUB (6, False, "line1")),(SUB (6, False, "line2")), (MUT (7, "test")), (MUT (8, "test"))]) 0,
