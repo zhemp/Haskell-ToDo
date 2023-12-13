@@ -33,6 +33,7 @@ import qualified Data.Map as M
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
     where
+        index_map = genIdToRankM appState
         errmsg = errorMessage appState
         focus = pointer appState --get the current focused list id
 
@@ -48,15 +49,15 @@ drawUI appState = [ui]
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
         mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 1) (muList appState)
+                L.renderList (listDrawElement index_map) (focus == 1) (muList appState)
         ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 2) (uList appState)
+                L.renderList (listDrawElement index_map) (focus == 2) (uList appState)
         mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 3) (imList appState)
+                L.renderList (listDrawElement index_map) (focus == 3) (imList appState)
         nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
-                L.renderList listDrawElement (focus == 4) (nnList appState)
+                L.renderList (listDrawElement index_map) (focus == 4) (nnList appState)
         doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
-                L.renderList listDrawElement (focus == 5) (donelist appState)
+                L.renderList (listDrawElement index_map) (focus == 5) (donelist appState)
 
         ui = case inputField appState of
             Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
@@ -113,20 +114,24 @@ drawUI appState = [ui]
                                 ]
             
 
-listDrawElement :: Bool -> Task -> Widget Name
-listDrawElement _ task =
+listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name
+listDrawElement map _ task =
     case task of 
         SUB (_, _, _) -> str "  └── " <+> str (show task)
         _ -> str (show task)
--- listDrawElement :: Bool -> Task -> Widget Name --replace he current draw with this
--- listDrawElement _ task =
+-- listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name --replace he current draw with this
+-- listDrawElement map _ task =
 --         case task of
 --         SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
 --                                             else str "  └── " <+> str content 
---         IMT (_, content) -> str content
---         UT  (_, content) -> str content
---         MUT (_, content) -> str content
---         NNT (_, content) -> str content
+--         IMT (id, content) -> let Just index = (M.lookup id map) 
+--                             in str (show index) <+> str "." <+> str content
+--         UT  (id, content) -> let Just index = (M.lookup id map) 
+--                             in str (show index) <+> str "." <+> str content
+--         MUT (id, content) -> let Just index = (M.lookup id map) 
+--                             in str (show index) <+> str "." <+> str content
+--         NNT (id, content) -> let Just index = (M.lookup id map) 
+--                             in str (show index) <+> str "." <+> str content
 
 
 
