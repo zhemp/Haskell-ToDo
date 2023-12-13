@@ -151,7 +151,6 @@ appEvent appState (T.VtyEvent e) =
                     in 
                         case L.listSelectedElement l of
                             Just (pos, task) ->
-                                
                                     if curStatus == 0 then 
                                         let maxId = getMaxId noErrApST
                                             el = createMainTask index (maxId+1) input
