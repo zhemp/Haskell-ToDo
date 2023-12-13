@@ -147,8 +147,10 @@ listDrawElement map focused selected task =
 
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
+appEvent as (T.VtyEvent (V.EvKey (V.KChar 'm') [])) = if status as == 5 then M.continue $ emptyS
+                                                                        else M.continue $ as
 appEvent appState (T.VtyEvent e) = 
-    let noErrApST = appState {errorMessage = Nothing}
+    let noErrApST = appState {errorMessage = Nothing,status =0}
     in
     case inputField noErrApST of
         --  if the inputField is not empty, then we will handle the input
@@ -274,7 +276,7 @@ appEvent appState (T.VtyEvent e) =
                                              updatedTodoL = insertGL toDoTasks $ getList pointedListIndex noErrApST
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
-                                            
+                    V.EvKey (V.KChar '+') [] -> M.continue $ noErrApST {theme = theme noErrApST +1}                        
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
                             Nothing -> M.continue noErrApST
@@ -289,8 +291,8 @@ appEvent appState (T.VtyEvent e) =
                                         (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
                                         M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
-                    
-
+                    V.EvKey (V.KChar 'r') [] ->
+                        M.continue $ noErrApST { status=5, errorMessage = Just "If you are sure to clear all records, press 'm'"}
                     V.EvKey (V.KDown) [] ->
                         case l^.(L.listSelectedL) of
                             Just pos ->
@@ -398,6 +400,22 @@ initialState = AppState {
     inputField = Nothing,
     errorMessage = Nothing
         }
+
+emptyS :: AppState
+emptyS = AppState {
+    pointer  = 1,
+    status   = 0,
+    theme    = 0,
+    imList   = L.list Imp    (Vec.empty) 0,
+    uList    = L.list Urg    (Vec.empty) 0,
+    muList   = L.list Impurg (Vec.empty) 0,
+    nnList   = L.list Nn     (Vec.empty) 0,
+    donelist = L.list Done   (Vec.empty) 0,
+    curMaxId = 0,
+    inputField = Nothing,
+    errorMessage = Nothing
+        }
+
 
 -- this function takes into an appstate and generate a id to index map, 
 -- the map takes a id of maintask and return the rank of the maintask in corresponding list.
