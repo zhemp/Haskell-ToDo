@@ -165,6 +165,9 @@ appEvent appState (T.VtyEvent e) =
                                             M.continue $ setInputField Nothing $ insertState index (L.listMoveTo 1 $ L.listInsert 0 el l) $ setMaxId index noErrApST (maxId+1)
                                     else M.continue noErrApST
 
+                V.EvKey V.KEsc [] ->
+                    M.continue $ setInputField Nothing $ noErrApST
+
                 V.EvKey (V.KChar '\BS') []  ->
                     if length input > 0 
                         then
@@ -201,21 +204,31 @@ appEvent appState (T.VtyEvent e) =
                             Just (pos,task)  -> 
                                 M.continue $ setInputField (Just "") noErrApST {status = 1}
                             Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
-      
-                    V.EvKey (V.KChar '-') [] ->
-                        case L.listSelectedElement l of
+
+
+
+                    V.EvKey (V.KChar '4') [] ->
+                        case l^.(L.listSelectedL) of
                             Nothing -> M.continue noErrApST
-                            Just (pos,task)  -> 
-                                if isSub task then 
-                                    let
-                                        updatedList =  L.listMoveBy (max (pos-1) 0) $ L.listRemove pos l
-                                    in
-                                        M.continue $ insertState index updatedList noErrApST        
-                                else  
-                                    let 
-                                        (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
-                                    in
-                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
+                            Just pos  -> 
+                                let
+                                    doneL = donelist noErrApST
+                                    Just (pos, doneTask) = L.listSelectedElement l
+                                    -- updatedList = L.listRemove pos l
+                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
+                                    idx = getTaskId doneTask
+                                    
+                                in
+                                    if isSub doneTask then 
+                                        let 
+                                            modifiedT = setTaskDone doneTask
+                                        in M.continue $ insertState index (replaceTask pos modifiedT l) noErrApST
+                                    else 
+                                        let (doneTasks, updatedList) = getDelsTandNewL l idx
+                                            updatedDoneList = insertGL doneTasks doneL
+                                         in
+                                            M.continue $ insertState index updatedList (noErrApST {donelist = updatedDoneList})
+
 
                     V.EvKey (V.KChar '5') [] ->
                         case l^.(L.listSelectedL) of
@@ -239,32 +252,21 @@ appEvent appState (T.VtyEvent e) =
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
                                             
-                    
-
-                    V.EvKey (V.KChar '4') [] ->
-                        case l^.(L.listSelectedL) of
+                    V.EvKey (V.KChar '-') [] ->
+                        case L.listSelectedElement l of
                             Nothing -> M.continue noErrApST
-                            Just pos  -> 
-                                let
-                                    doneL = donelist noErrApST
-                                    Just (pos, doneTask) = L.listSelectedElement l
-                                    -- updatedList = L.listRemove pos l
-                                    -- updatedDoneList = L.listInsert 0 doneTask doneL
-                                    idx = getTaskId doneTask
-                                    
-                                in
-                                    if isSub doneTask then 
-                                        let 
-                                            modifiedT = setTaskDone doneTask
-                                        in M.continue $ insertState index (replaceTask pos modifiedT l) noErrApST
-                                    else 
-                                        let (doneTasks, updatedList) = getDelsTandNewL l idx
-                                            updatedDoneList = insertGL doneTasks doneL
-                                         in
-                                            M.continue $ insertState index updatedList (noErrApST {donelist = updatedDoneList})
-                                            
-
-
+                            Just (pos,task)  -> 
+                                if isSub task then 
+                                    let
+                                        updatedList =  L.listMoveBy (max (pos-1) 0) $ L.listRemove pos l
+                                    in
+                                        M.continue $ insertState index updatedList noErrApST        
+                                else  
+                                    let 
+                                        (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
+                                    in
+                                        M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
+                    
 
                     V.EvKey (V.KDown) [] ->
                         case l^.(L.listSelectedL) of
