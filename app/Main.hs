@@ -25,6 +25,7 @@ import qualified Data.Foldable as Vector
 import qualified Data.IMap as Vector
 import qualified Data.Foldable as V
 import qualified Data.Map as M
+import Text.Read (Lexeme(String))
 
 
 
@@ -162,6 +163,8 @@ appEvent appState (T.VtyEvent e) =
                                             el = createSubTask idx input
                                         in 
                                             M.continue $ setInputField Nothing $ insertState index (L.listMoveTo (pos + 1) $ L.listInsert (pos + 1) el l) noErrApST
+                                    else if curStatus == 2 then 
+                                        M.continue $ setInputField Nothing $ insertState index (replaceTask pos (changeTaskContent task input) l) noErrApST
                                     else M.continue noErrApST
                             Nothing  ->  
                                 if curStatus == 0 then 
@@ -211,6 +214,11 @@ appEvent appState (T.VtyEvent e) =
                                 M.continue $ setInputField (Just "") noErrApST {status = 1}
                             Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
 
+                    V.EvKey (V.KChar '3') [] ->
+                        case L.listSelectedElement l of
+                            Just (pos,task)  -> 
+                                M.continue $ setInputField (Just (getContent task)) noErrApST {status = 2}
+                            Nothing -> M.continue $ noErrApST {errorMessage = Just "To modify, you have to at least choose one task"}
 
 
                     V.EvKey (V.KChar '4') [] ->
@@ -412,6 +420,24 @@ genIdToRankM appState =
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
 
+
+changeTaskContent :: Task -> String -> Task 
+changeTaskContent = go
+    where 
+        go (IMT (n, s)) s'    = (IMT (n, s'))   
+        go (UT  (n, s)) s'    = (UT  (n, s'))  
+        go (MUT (n, s)) s'    = (MUT (n, s'))  
+        go (NNT (n, s)) s'    = (NNT (n, s'))  
+        go (SUB (n, b, s)) s' = (SUB (n, b, s'))  
+-- this function takes into a task and return a string
+getContent :: Task -> String 
+getContent = go 
+    where 
+        go    (IMT (_, s)) = s
+        go    (UT  (_, s)) = s
+        go    (MUT (_, s)) = s
+        go    (NNT (_, s)) = s
+        go    (SUB (_, _, s)) = s 
 
 getPriority :: Task -> Int
 getPriority (MUT _) = 1
