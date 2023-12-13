@@ -31,7 +31,6 @@ import Text.Read (Lexeme(String))
 
 
 
-
 drawUI ::  AppState -> [Widget Name]
 drawUI appState = [ui]
     where
