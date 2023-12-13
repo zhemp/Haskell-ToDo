@@ -119,8 +119,8 @@ listDrawElement _ task =
 -- listDrawElement :: Bool -> Task -> Widget Name --replace he current draw with this
 -- listDrawElement _ task =
 --         case task of
---         SUB (_, done, content) -> if done then str "  └── " <+> str "X " <+> str content
---                                             else str "  └── " <+> str content
+--         SUB (_, done, content) -> if done then str "  └── " <+> str (concatMap (\c -> [c, '\x0336']) content)
+--                                             else str "  └── " <+> str content 
 --         IMT (_, content) -> str content
 --         UT  (_, content) -> str content
 --         MUT (_, content) -> str content
