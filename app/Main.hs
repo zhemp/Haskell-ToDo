@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 module Main where
 
 import Control.Monad (void)
@@ -256,7 +257,6 @@ appEvent appState (T.VtyEvent e) =
                                     -- updatedDoneList = L.listInsert 0 doneTask doneL
                                     idx = getTaskId doneTask
                                     
-                                    
                                 in
                                     if isSub doneTask || index < 5 then M.continue $ noErrApST
                                     else let (tasks, updateDoneL) = getDelsTandNewL doneL idx 
@@ -362,8 +362,9 @@ data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
 
 data AppState = AppState {
     pointer   :: Int,
-    -- 0 is adding main task, 1 is for adding sub task
+    -- 0 is adding main task, 1 is for adding sub task， 2 is for modifying task
     status    :: Int,
+    theme     :: Int,
     imList    :: L.List Name Task,
     uList     :: L.List Name Task, 
     muList    :: L.List Name Task, 
@@ -375,9 +376,11 @@ data AppState = AppState {
 }
 
 initialState :: AppState
+
 initialState = AppState {
     pointer  = 1,
     status   = 0,
+    theme    = 0,
     imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
     uList    = L.list Urg    (Vec.fromList [(UT (3, "test")), (SUB (3, True, "line")), (UT (4, "test")), (UT (5, "test"))]) 0,
     muList   = L.list Impurg (Vec.fromList [(MUT (6, "test")), (SUB (6, False, "line1")),(SUB (6, False, "line2")), (MUT (7, "test")), (MUT (8, "test"))]) 0,
@@ -574,11 +577,11 @@ theMap = A.attrMap V.defAttr
 
 theApp :: M.App AppState e Name
 theApp = M.App
-    { M.appDraw = drawUI
+    { M.appDraw         = drawUI
     , M.appChooseCursor = M.neverShowCursor
-    , M.appHandleEvent = appEvent
-    , M.appStartEvent = return
-    , M.appAttrMap = const theMap
+    , M.appHandleEvent  = appEvent
+    , M.appStartEvent   = return
+    , M.appAttrMap      = const theMap
     }
 
 
