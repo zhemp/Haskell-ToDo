@@ -146,7 +146,19 @@ listDrawElement map focused selected task =
 
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
-appEvent as (T.VtyEvent (V.EvKey (V.KChar 'm') [])) = if status as == 5 then M.continue $ emptyS
+appEvent as (T.VtyEvent (V.EvKey (V.KChar 'm') [])) = if status as == 5 then M.continue $ as {
+                                                                                                pointer  = 1,
+                                                                                                status   = 0,
+                                                                                                imList   = L.list Imp    (Vec.empty) 0,
+                                                                                                uList    = L.list Urg    (Vec.empty) 0,
+                                                                                                muList   = L.list Impurg (Vec.empty) 0,
+                                                                                                nnList   = L.list Nn     (Vec.empty) 0,
+                                                                                                donelist = L.list Done   (Vec.empty) 0,
+                                                                                                curMaxId = 0,
+                                                                                                inputField = Nothing,       
+                                                                                                errorMessage = Nothing
+                                                                                            }
+                                                                                            
                                                                         else M.continue $ as
 appEvent appState (T.VtyEvent e) = 
     let noErrApST = appState {errorMessage = Nothing,status =0}
@@ -400,20 +412,7 @@ initialState = AppState {
     errorMessage = Nothing
         }
 
-emptyS :: AppState
-emptyS = AppState {
-    pointer  = 1,
-    status   = 0,
-    theme    = 0,
-    imList   = L.list Imp    (Vec.empty) 0,
-    uList    = L.list Urg    (Vec.empty) 0,
-    muList   = L.list Impurg (Vec.empty) 0,
-    nnList   = L.list Nn     (Vec.empty) 0,
-    donelist = L.list Done   (Vec.empty) 0,
-    curMaxId = 0,
-    inputField = Nothing,
-    errorMessage = Nothing
-        }
+
 
 
 -- this function takes into an appstate and generate a id to index map, 
