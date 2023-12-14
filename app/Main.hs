@@ -47,12 +47,7 @@ theApp = M.App
     , M.appChooseCursor = M.neverShowCursor
     , M.appHandleEvent = appEvent
     , M.appStartEvent = return
-    , M.appAttrMap = \s -> let value = theme s in 
-                        case value `mod` 4 of 
-                            0 -> defaultThemeMap
-                            1 -> violetThemeMap
-                            2 -> darkvioletThemeMap
-                            3 -> pearThemeMap
+    , M.appAttrMap = selectTheme
     }
 
  
