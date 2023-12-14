@@ -39,6 +39,13 @@ drawUI appState = [ui]
     where
         index_map = genIdToRankM appState
         errmsg = errorMessage appState
+
+        cur_theme = case (theme appState) `mod` 4 of
+            0 -> "Default" 
+            1 -> "Violet"
+            2 -> "Dark Violet"
+            3 -> "Pear"
+
         focus = pointer appState --get the current focused list id
 
         total_mu = Vec.length $ Vec.filter (not . isSub) (L.listElements (muList appState))
@@ -65,7 +72,7 @@ drawUI appState = [ui]
 
         ui = case inputField appState of
             Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
-                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
+                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done. " <+> str "Current theme is: " <+> str cur_theme),
                                 B.hBorder,
                                 hBox [vBox [mubox,
                                             ubox,
@@ -84,12 +91,12 @@ drawUI appState = [ui]
                                     Just err -> vLimit 3 $ vBox[
                                                         C.center $ str err
                                                         , B.hBorder
-                                                        , C.center $ str "Press any key to ignore this error."
+                                                        , C.center $ str "Press any key to ignore."
                                                     ]
                                     Nothing -> emptyWidget
                                 ]
             Just input -> C.hCenter $ C.vCenter $ hLimit 131 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
-                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done"),
+                C.vCenter $ vBox [ C.hCenter (str "You have a total of " <+> undone_total <+> str " tasks undone and " <+> str (show total_done) <+> str " done. " <+> str "Current theme is: " <+> str cur_theme),
                                 B.hBorder,
                                 hBox [vBox [mubox,
                                             ubox,
@@ -669,8 +676,8 @@ setMaxId :: AppState -> Int -> AppState
 setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
-lightThemeMap :: A.AttrMap
-lightThemeMap = A.attrMap V.defAttr -- white Theme
+violetThemeMap :: A.AttrMap
+violetThemeMap = A.attrMap V.defAttr -- white Theme
     [ (muAttr, V.black `on` (V.rgbColor 185 251 192)) 
     , (uAttr,  V.black `on` (V.rgbColor 142 236 245))  
     , (mAttr,  V.black `on` (V.rgbColor 163 196 243))  
@@ -678,12 +685,21 @@ lightThemeMap = A.attrMap V.defAttr -- white Theme
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     ]
 
-darkThemeMap :: A.AttrMap
-darkThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.white `on` (V.rgbColor 255 203 242)) -- Example colors
-    , (uAttr,  V.white `on` (V.rgbColor 224 170 255))
-    , (mAttr,  V.white `on` (V.rgbColor 199 125 255))
-    , (nnAttr, V.white `on` (V.rgbColor 157 78 221) )
+darkvioletThemeMap :: A.AttrMap
+darkvioletThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.black `on` (V.rgbColor 255 203 242)) -- Example colors
+    , (uAttr,  V.black `on` (V.rgbColor 224 170 255))
+    , (mAttr,  V.black `on` (V.rgbColor 199 125 255))
+    , (nnAttr, V.black `on` (V.rgbColor 157 78 221) )
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    ]
+
+pearThemeMap :: A.AttrMap
+pearThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.black `on` (V.rgbColor 251 196 171)) -- Example colors
+    , (uAttr,  V.black `on` (V.rgbColor 248 173 157))
+    , (mAttr,  V.black `on` (V.rgbColor 244 151 142))
+    , (nnAttr, V.black `on` (V.rgbColor 240 128 128) )
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     ]
 
@@ -724,10 +740,11 @@ theApp = M.App
     , M.appHandleEvent = appEvent
     , M.appStartEvent = return
     , M.appAttrMap = \s -> let value = theme s in 
-                        case value `mod` 3 of 
+                        case value `mod` 4 of 
                             0 -> defaultThemeMap
-                            1 -> lightThemeMap
-                            2 -> darkThemeMap
+                            1 -> violetThemeMap
+                            2 -> darkvioletThemeMap
+                            3 -> pearThemeMap
     }
 
  
