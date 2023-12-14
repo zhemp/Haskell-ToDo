@@ -24,6 +24,11 @@ source-repository head
   location: https://github.com/githubuser/todoList
 
 library
+  exposed-modules:
+      Data
+      UI
+      Utility
+      Event
   other-modules:
       Paths_todoList
   autogen-modules:

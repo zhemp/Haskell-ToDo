@@ -51,6 +51,12 @@ ghc-options:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Data
+    - UI
+    - Utility
+    - Event
+  
 
 executables:
   todoList-exe:
