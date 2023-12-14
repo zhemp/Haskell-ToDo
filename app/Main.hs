@@ -355,7 +355,9 @@ appEvent appState (T.VtyEvent e) =
                     --         Nothing -> M.continue l
                     --         Just i  -> M.continue $ L.listRemove i l
 
-                    V.EvKey V.KEsc [] -> M.halt noErrApST
+                    V.EvKey V.KEsc [] -> do
+                        liftIO $ exportState noErrApST "state.json"
+                        M.halt $ noErrApST { status=5, errorMessage = Just "Saved succefully"}
 
                     -- any other key pressed, we will not handle it
                     _ -> M.continue noErrApST
