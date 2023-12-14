@@ -287,7 +287,10 @@ appEvent appState (T.VtyEvent e) =
                                              updatedTodoL = insertGL toDoTasks $ getList pointedListIndex noErrApST
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
-                    V.EvKey (V.KChar '+') [] -> M.continue $ noErrApST {theme = theme noErrApST +1}                        
+                    V.EvKey (V.KChar '+') [] -> 
+                        if index == 5 then M.continue $ noErrApST {errorMessage = Just "Pls do not add task into the done list"}
+                        else 
+                            M.continue $ noErrApST {theme = theme noErrApST +1}                        
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
                             Nothing -> M.continue noErrApST
