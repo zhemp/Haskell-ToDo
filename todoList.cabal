@@ -43,6 +43,7 @@ library
     , brick <1
     , bytestring
     , containers
+    , directory
     , microlens
     , microlens-mtl
     , mtl
@@ -67,6 +68,7 @@ executable todoList-exe
     , brick <1
     , bytestring
     , containers
+    , directory
     , microlens
     , microlens-mtl
     , mtl
@@ -93,6 +95,7 @@ test-suite todoList-test
     , brick <1
     , bytestring
     , containers
+    , directory
     , microlens
     , microlens-mtl
     , mtl

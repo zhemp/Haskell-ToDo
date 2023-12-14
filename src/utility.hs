@@ -28,6 +28,8 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy (pack, unpack)
 import Control.Monad.IO.Class (liftIO)
+import System.Directory (doesFileExist)
+import System.IO (writeFile)
 
 
 
@@ -218,10 +220,23 @@ setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
 exportState :: AppState -> FilePath -> IO ()
-exportState appState filePath =     
-    B.writeFile filePath (encode appState)
+exportState appState filePath = 
+    do    
+        checkAndCreateFile filePath
+        B.writeFile filePath (encode appState)
 
 importState :: FilePath -> IO (Maybe AppState)
 importState filePath = do
+    checkAndCreateFile filePath
     file <- B.readFile filePath
     return $ decode file
+
+
+checkAndCreateFile :: FilePath -> IO ()
+checkAndCreateFile filePath = do
+    fileExists <- doesFileExist filePath
+    if fileExists
+        then return ()
+        else do
+            writeFile filePath ""
+            return ()
