@@ -668,19 +668,19 @@ setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 lightThemeMap :: A.AttrMap
 lightThemeMap = A.attrMap V.defAttr -- white Theme
-    [ (muAttr, V.black `on` (V.rgbColor 251 196 171)) 
-    , (uAttr,  V.black `on` (V.rgbColor 248 173 157))  
-    , (mAttr,  V.black `on` (V.rgbColor 244 151 142))  
-    , (nnAttr, V.black `on` (V.rgbColor 240 128 128))  
+    [ (muAttr, V.black `on` (V.rgbColor 185 251 192)) 
+    , (uAttr,  V.black `on` (V.rgbColor 142 236 245))  
+    , (mAttr,  V.black `on` (V.rgbColor 163 196 243))  
+    , (nnAttr, V.black `on` (V.rgbColor 241 192 232) )  
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     ]
 
 darkThemeMap :: A.AttrMap
 darkThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.white `on` (V.rgbColor 160 82 45))   -- Example colors
-    , (uAttr,  V.white `on` (V.rgbColor 0 0 139))  
-    , (mAttr,  V.white `on` (V.rgbColor 0 100 0))  
-    , (nnAttr, V.white `on` (V.rgbColor 47 79 79))  
+    [ (muAttr, V.white `on` (V.rgbColor 255 203 242)) -- Example colors
+    , (uAttr,  V.white `on` (V.rgbColor 224 170 255))
+    , (mAttr,  V.white `on` (V.rgbColor 199 125 255))
+    , (nnAttr, V.white `on` (V.rgbColor 157 78 221) )
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     ]
 
