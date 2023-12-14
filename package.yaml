@@ -32,6 +32,8 @@ dependencies:
 - aeson
 - text
 - bytestring
+- HUnit >= 1.6 && <= 1.7
+
 
 extra-deps:
   - vty-6.1
@@ -56,6 +58,7 @@ library:
     - UI
     - Utility
     - Event
+
   
 
 executables:
@@ -80,3 +83,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - todoList
+    - HUnit

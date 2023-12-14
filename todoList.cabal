@@ -37,7 +37,8 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      aeson
+      HUnit >=1.6 && <=1.7
+    , aeson
     , base >=4.7 && <5
     , brick <1
     , bytestring
@@ -60,7 +61,8 @@ executable todoList-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      HUnit >=1.6 && <=1.7
+    , aeson
     , base >=4.7 && <5
     , brick <1
     , bytestring
@@ -85,7 +87,8 @@ test-suite todoList-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      HUnit
+    , aeson
     , base >=4.7 && <5
     , brick <1
     , bytestring

@@ -90,6 +90,7 @@ getContent = go
         go    (NNT (_, s)) = s
         go    (SUB (_, _, s)) = s 
 
+-- This function will takes into a task and return its priority
 getPriority :: Task -> Int
 getPriority (MUT _) = 1
 getPriority (UT  _) = 2
