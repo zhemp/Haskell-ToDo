@@ -39,11 +39,13 @@ drawUI appState = [ui]
         index_map = genIdToRankM appState
         errmsg = errorMessage appState
 
-        cur_theme = case (theme appState) `mod` 4 of
+        cur_theme = case (theme appState) `mod` 6 of
             0 -> "Default" 
             1 -> "Violet"
             2 -> "Dark Violet"
             3 -> "Pear"
+            4 -> "Mystery"
+            5 -> "Cotton Candy"
 
         focus = pointer appState --get the current focused list id
 
@@ -134,13 +136,13 @@ drawUI appState = [ui]
                                 ]
             
 
--- listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name
+-- listDrawElement :: M.Map Int Int -> Bool -> Task -> Widget Name -- for development only
 -- listDrawElement map _ task =
 --     case task of 
 --         SUB (_, _, _) -> str "  └── " <+> str (show task)
 --         _ -> str (show task)
 
-listDrawElement :: M.Map Int Int -> Bool -> Bool -> Task -> Widget Name --replace he current draw with this
+listDrawElement :: M.Map Int Int -> Bool -> Bool -> Task -> Widget Name
 listDrawElement map focused selected task =
         case task of
         SUB (_, done, content) -> if selected && focused then
@@ -163,9 +165,8 @@ listDrawElement map focused selected task =
                                                         else str (show index) <+> str "." <+> str content
 
 
-
-violetThemeMap :: A.AttrMap
-violetThemeMap = A.attrMap V.defAttr -- white Theme
+cottonCandyThemeMap :: A.AttrMap
+cottonCandyThemeMap = A.attrMap V.defAttr
     [ (muAttr, V.black `on` (V.rgbColor 185 251 192)) 
     , (uAttr,  V.black `on` (V.rgbColor 142 236 245))  
     , (mAttr,  V.black `on` (V.rgbColor 163 196 243))  
@@ -174,9 +175,9 @@ violetThemeMap = A.attrMap V.defAttr -- white Theme
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
-darkvioletThemeMap :: A.AttrMap
-darkvioletThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.black `on` (V.rgbColor 255 203 242)) -- Example colors
+violetThemeMap :: A.AttrMap
+violetThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.black `on` (V.rgbColor 255 203 242))
     , (uAttr,  V.black `on` (V.rgbColor 224 170 255))
     , (mAttr,  V.black `on` (V.rgbColor 199 125 255))
     , (nnAttr, V.black `on` (V.rgbColor 157 78 221) )
@@ -184,9 +185,19 @@ darkvioletThemeMap = A.attrMap V.defAttr
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
+darkvioletThemeMap :: A.AttrMap
+darkvioletThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.black `on` (V.rgbColor 123 44 191)) 
+    , (uAttr,  V.black `on` (V.rgbColor 90 24 154))  
+    , (mAttr,  V.black `on` (V.rgbColor 60 9 108))  
+    , (nnAttr, V.black `on` (V.rgbColor 36 0 70) )  
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
+    ]
+
 pearThemeMap :: A.AttrMap
 pearThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.black `on` (V.rgbColor 251 196 171)) -- Example colors
+    [ (muAttr, V.black `on` (V.rgbColor 251 196 171))
     , (uAttr,  V.black `on` (V.rgbColor 248 173 157))
     , (mAttr,  V.black `on` (V.rgbColor 244 151 142))
     , (nnAttr, V.black `on` (V.rgbColor 240 128 128) )
@@ -194,24 +205,25 @@ pearThemeMap = A.attrMap V.defAttr
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
+mysteryThemeMap :: A.AttrMap
+mysteryThemeMap = A.attrMap V.defAttr
+    [ (muAttr, V.black `on` (V.rgbColor 160 26 88))
+    , (uAttr,  V.black `on` (V.rgbColor 114 60 112))
+    , (mAttr,  V.black `on` (V.rgbColor 92 77 125))
+    , (nnAttr, V.black `on` (V.rgbColor 46 111 149) )
+    , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
+    ]
+
 defaultThemeMap :: A.AttrMap
 defaultThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.defAttr)   -- Example colors
+    [ (muAttr, V.defAttr) 
     , (uAttr,  V.defAttr)  
     , (mAttr,  V.defAttr)  
     , (nnAttr, V.defAttr)  
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
-
--- defaultThemeMap :: A.AttrMap
--- defaultThemeMap = A.attrMap V.defAttr -- white Theme
---     [ (muAttr, V.black `on` (V.rgbColor 251 196 171))   -- Example colors
---     , (uAttr,  V.black `on` (V.rgbColor 248 173 157))  
---     , (mAttr,  V.black `on` (V.rgbColor 244 151 142))  
---     , (nnAttr, V.black `on` (V.rgbColor 240 128 128))  
---     , (selectedFocusedAttr, V.black `on` V.brightWhite)
---     ]
 
 muAttr, uAttr, mAttr, nnAttr, selectedFocusedAttr, borderFocusedAttr:: A.AttrName
 muAttr = A.attrName "muListAttr"
@@ -221,7 +233,11 @@ nnAttr = A.attrName "nnListAttr"
 selectedFocusedAttr = A.attrName "selectedFocusedAttr"
 borderFocusedAttr = A.attrName "borderFocusedAttr"
 
--- selectTheme :: AppState -> A.AttrMap
--- selectTheme appState = 
---     let currentTheme = theme appState
---     in if currentTheme == 0 then defaultThemeMap else if currentTheme == 1 then lightThemeMap else darkThemeMap
+selectTheme = (\s -> let value = theme s in 
+                        case value `mod` 6 of 
+                            0 -> defaultThemeMap
+                            1 -> violetThemeMap
+                            2 -> darkvioletThemeMap
+                            3 -> pearThemeMap
+                            4 -> mysteryThemeMap
+                            5 -> cottonCandyThemeMap)
