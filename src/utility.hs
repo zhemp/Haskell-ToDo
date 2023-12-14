@@ -96,6 +96,7 @@ getPriority (MUT _) = 1
 getPriority (UT  _) = 2
 getPriority (IMT _) = 3
 getPriority (NNT _) = 4
+getPriority  _      = 0
 
 
 -- this function takes a list of tasks and a id then return the length of the current task
@@ -216,3 +217,11 @@ setMaxId :: AppState -> Int -> AppState
 setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
+exportState :: AppState -> FilePath -> IO ()
+exportState appState filePath =     
+    B.writeFile filePath (encode appState)
+
+importState :: FilePath -> IO (Maybe AppState)
+importState filePath = do
+    file <- B.readFile filePath
+    return $ decode file

@@ -1,4 +1,3 @@
--- data.hs
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -45,7 +44,7 @@ data Task =
  | MUT L1Task
  | NNT L1Task
  | SUB (Int, Bool, String) 
- deriving (Show)
+ deriving (Show,Eq)
 
 data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
   deriving (Eq, Ord, Show)
@@ -157,11 +156,3 @@ instance FromJSON AppState where
             errorMessage = errorMessage
         }
 
-exportState :: AppState -> FilePath -> IO ()
-exportState appState filePath =     
-    B.writeFile filePath (encode appState)
-
-importState :: FilePath -> IO (Maybe AppState)
-importState filePath = do
-    file <- B.readFile filePath
-    return $ decode file
