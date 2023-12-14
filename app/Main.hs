@@ -59,16 +59,26 @@ drawUI appState = [ui]
         undone_total = str $ show (total_mu + total_u + total_m + total_nn)
         total_done = Vec.length $ Vec.filter (not . isSub) (L.listElements (donelist appState))   --get the current count of tasks
 
-        mubox = B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
-                withAttr muAttr $ L.renderList (listDrawElement index_map (focus == 1)) (focus == 1) (muList appState)
-        ubox = B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
-                withAttr uAttr $ L.renderList (listDrawElement index_map (focus == 2)) (focus == 2) (uList appState)
-        mbox = B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
-                withAttr mAttr $ L.renderList (listDrawElement index_map (focus == 3)) (focus == 3) (imList appState)
-        nnbox = B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
-                withAttr nnAttr $ L.renderList (listDrawElement index_map (focus == 4)) (focus == 4) (nnList appState)
-        doneBox = B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
-                L.renderList (listDrawElement index_map (focus == 5)) (focus == 5) (donelist appState)
+        mubox = if focus == 1 then withAttr borderFocusedAttr $ B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
+                                withAttr muAttr $ L.renderList (listDrawElement index_map (focus == 1)) (focus == 1) (muList appState)
+                            else B.borderWithLabel (str ("Imp and Urgent: " ++ show total_mu ++ " main tasks " ++ show total_mu_sub ++ " sub-tasks")) $
+                                withAttr muAttr $ L.renderList (listDrawElement index_map (focus == 1)) (focus == 1) (muList appState)
+        ubox = if focus == 2 then withAttr borderFocusedAttr $ B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
+                                withAttr uAttr $ L.renderList (listDrawElement index_map (focus == 2)) (focus == 2) (uList appState)
+                            else B.borderWithLabel (str ("Urgent: " ++ show total_u ++ " main tasks " ++ show total_u_sub ++ " sub-tasks")) $
+                                withAttr uAttr $ L.renderList (listDrawElement index_map (focus == 2)) (focus == 2) (uList appState)
+        mbox = if focus == 3 then withAttr borderFocusedAttr $ B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
+                                withAttr mAttr $ L.renderList (listDrawElement index_map (focus == 3)) (focus == 3) (imList appState)
+                            else B.borderWithLabel (str ("Imp: " ++ show total_m ++ " main tasks " ++ show total_m_sub ++ " sub-tasks")) $
+                                withAttr mAttr $ L.renderList (listDrawElement index_map (focus == 3)) (focus == 3) (imList appState)
+        nnbox = if focus == 4 then withAttr borderFocusedAttr $ B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
+                                withAttr nnAttr $ L.renderList (listDrawElement index_map (focus == 4)) (focus == 4) (nnList appState)
+                            else B.borderWithLabel (str ("Not imp nor urgent: " ++ show total_nn ++ " main tasks " ++ show total_nn_sub ++ " sub-tasks")) $
+                                withAttr nnAttr $ L.renderList (listDrawElement index_map (focus == 4)) (focus == 4) (nnList appState)
+        doneBox = if focus == 5 then withAttr borderFocusedAttr $ B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
+                                L.renderList (listDrawElement index_map (focus == 5)) (focus == 5) (donelist appState)
+                            else B.borderWithLabel (str ("Done: " ++ show total_done ++ " tasks")) $ 
+                                L.renderList (listDrawElement index_map (focus == 5)) (focus == 5) (donelist appState)
 
         ui = case inputField appState of
             Nothing -> C.hCenter $ C.vCenter $ hLimit 130 $ vLimit 50 $ B.borderWithLabel (str "Fantastic To-do") $ 
@@ -683,6 +693,7 @@ violetThemeMap = A.attrMap V.defAttr -- white Theme
     , (mAttr,  V.black `on` (V.rgbColor 163 196 243))  
     , (nnAttr, V.black `on` (V.rgbColor 241 192 232) )  
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
 darkvioletThemeMap :: A.AttrMap
@@ -692,6 +703,7 @@ darkvioletThemeMap = A.attrMap V.defAttr
     , (mAttr,  V.black `on` (V.rgbColor 199 125 255))
     , (nnAttr, V.black `on` (V.rgbColor 157 78 221) )
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
 pearThemeMap :: A.AttrMap
@@ -701,6 +713,7 @@ pearThemeMap = A.attrMap V.defAttr
     , (mAttr,  V.black `on` (V.rgbColor 244 151 142))
     , (nnAttr, V.black `on` (V.rgbColor 240 128 128) )
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
 defaultThemeMap :: A.AttrMap
@@ -710,6 +723,7 @@ defaultThemeMap = A.attrMap V.defAttr
     , (mAttr,  V.defAttr)  
     , (nnAttr, V.defAttr)  
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
+    , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
 
 -- defaultThemeMap :: A.AttrMap
@@ -721,12 +735,13 @@ defaultThemeMap = A.attrMap V.defAttr
 --     , (selectedFocusedAttr, V.black `on` V.brightWhite)
 --     ]
 
-muAttr, uAttr, mAttr, nnAttr, selectedFocusedAttr:: A.AttrName
+muAttr, uAttr, mAttr, nnAttr, selectedFocusedAttr, borderFocusedAttr:: A.AttrName
 muAttr = A.attrName "muListAttr"
 uAttr  = A.attrName "uListAttr"
 mAttr  = A.attrName "mListAttr"
 nnAttr = A.attrName "nnListAttr"
-selectedFocusedAttr = A.attrName "selectedFocused"
+selectedFocusedAttr = A.attrName "selectedFocusedAttr"
+borderFocusedAttr = A.attrName "borderFocusedAttr"
 
 -- selectTheme :: AppState -> A.AttrMap
 -- selectTheme appState = 
