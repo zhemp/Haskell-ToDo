@@ -31,6 +31,7 @@ import Data.Aeson
 import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy (pack, unpack)
+import Control.Monad.IO.Class (liftIO)
 
 
 
@@ -149,22 +150,8 @@ listDrawElement map focused selected task =
 
 
 appEvent :: AppState -> T.BrickEvent Name e -> T.EventM Name (T.Next (AppState))
-appEvent as (T.VtyEvent (V.EvKey (V.KChar 'm') [])) = if status as == 5 then M.continue $ as {
-                                                                                                pointer  = 1,
-                                                                                                status   = 0,
-                                                                                                imList   = L.list Imp    (Vec.empty) 0,
-                                                                                                uList    = L.list Urg    (Vec.empty) 0,
-                                                                                                muList   = L.list Impurg (Vec.empty) 0,
-                                                                                                nnList   = L.list Nn     (Vec.empty) 0,
-                                                                                                donelist = L.list Done   (Vec.empty) 0,
-                                                                                                curMaxId = 0,
-                                                                                                inputField = Nothing,       
-                                                                                                errorMessage = Nothing
-                                                                                            }
-                                                                                            
-                                                                        else M.continue $ as
 appEvent appState (T.VtyEvent e) = 
-    let noErrApST = appState {errorMessage = Nothing,status =0}
+    let noErrApST = appState {errorMessage = Nothing}
     in
     case inputField noErrApST of
         --  if the inputField is not empty, then we will handle the input
@@ -227,16 +214,17 @@ appEvent appState (T.VtyEvent e) =
         -- if the inputField is empty, then we will handle the event as usual
         Nothing ->
                 case e of
-
                     V.EvKey (V.KChar '1') [] ->
-
-                        M.continue $ setInputField (Just "") noErrApST {status = 0}
+                        if index == 5 then M.continue $ noErrApST {errorMessage = Just "Pls do not add task into the done list"}
+                        else M.continue $ setInputField (Just "") noErrApST {status = 0}
 
                     V.EvKey (V.KChar '2') [] ->
-                        case L.listSelectedElement l of
-                            Just (pos,task)  -> 
-                                M.continue $ setInputField (Just "") noErrApST {status = 1}
-                            Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
+                        if index == 5 then M.continue $ noErrApST {errorMessage = Just "Pls do not add task into the done list"}
+                        else 
+                            case L.listSelectedElement l of
+                                Just (pos,task)  -> 
+                                    M.continue $ setInputField (Just "") noErrApST {status = 1}
+                                Nothing -> M.continue $ noErrApST {errorMessage = Just "Pls fisrt create a main task"}
 
                     V.EvKey (V.KChar '3') [] ->
                         case L.listSelectedElement l of
@@ -291,8 +279,6 @@ appEvent appState (T.VtyEvent e) =
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
                     V.EvKey (V.KChar '+') [] -> 
-                        if index == 5 then M.continue $ noErrApST {errorMessage = Just "Pls do not add task into the done list"}
-                        else 
                             M.continue $ noErrApST {theme = theme noErrApST +1}                        
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
@@ -308,8 +294,13 @@ appEvent appState (T.VtyEvent e) =
                                         (tasks, updatedList) = getDelsTandNewL l (getTaskId task)
                                     in
                                         M.continue $ insertState index (L.listMoveBy (max (pos-1) 0) updatedList) noErrApST  
+                    V.EvKey (V.KChar 'm') [] -> if status noErrApST==5 then M.continue $ emptyS { theme = theme noErrApST, status=0} 
+                                                                       else M.continue $ noErrApST
                     V.EvKey (V.KChar 'r') [] ->
-                        M.continue $ noErrApST { status=5, errorMessage = Just "If you are sure to clear all records, press 'm'"}
+                        M.continue $ noErrApST { status=5, errorMessage = Just "If you are sure to clear all records, press 'm'."}
+                    V.EvKey (V.KChar 's') [] -> do
+                                liftIO $ exportState noErrApST "state.json"
+                                M.continue $ noErrApST { status=5, errorMessage = Just "Saved succefully"}
                     V.EvKey (V.KDown) [] ->
                         case l^.(L.listSelectedL) of
                             Just pos ->
@@ -490,7 +481,19 @@ initialState = AppState {
     inputField = Nothing,
     errorMessage = Nothing
         }
-
+emptyS = AppState {
+      pointer  = 1,
+      status   = 0,
+      theme    = 0,
+      imList   = L.list Imp    (Vec.empty) 0,
+      uList    = L.list Urg    (Vec.empty) 0,
+      muList   = L.list Impurg (Vec.empty) 0,
+      nnList   = L.list Nn     (Vec.empty) 0,
+      donelist = L.list Done   (Vec.empty) 0,
+      curMaxId = 0,
+      inputField = Nothing,       
+      errorMessage = Nothing
+  }
 
 
 
@@ -534,6 +537,8 @@ changeTaskContent = go
         go (MUT (n, s)) s'    = (MUT (n, s'))  
         go (NNT (n, s)) s'    = (NNT (n, s'))  
         go (SUB (n, b, s)) s' = (SUB (n, b, s'))  
+
+
 -- this function takes into a task and return a string
 getContent :: Task -> String 
 getContent = go 
@@ -734,7 +739,7 @@ theApp = M.App
 main :: IO ()
 main =  do
     let filePath = "state.json"
-    exportState initialState filePath
+
     maybeAppState <- importState filePath
     case maybeAppState of
         Just appState -> void $ M.defaultMain theApp appState
