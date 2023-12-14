@@ -727,12 +727,7 @@ theApp = M.App
                             2 -> darkThemeMap
     }
 
-
-
-
-
-
--- 
+ 
 main :: IO ()
 main =  do
     let filePath = "state.json"
