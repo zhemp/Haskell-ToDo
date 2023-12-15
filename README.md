@@ -4,14 +4,11 @@
 Jiajie Wang, Zihan Lyu, Zheming Pu
 
 ## How to install 
+This steps can only work on Unix based system
 1. `$ git clone https://github.com/zhemp/Haskell-ToDo.git`
 2. `$ cd Haskell-ToDo`
 3. If you do not have stack on on your computer, check here `https://docs.haskellstack.org/en/stable/` for the latest updates.
-    - These command may outdated:
-        - Linux `curl -sSL https://get.haskellstack.org/ | sh`   or   `wget -qO- https://get.haskellstack.org/ | sh`
-        - Mac - intel based: `curl -sSL https://get.haskellstack.org/ | sh` or `wget -qO- https://get.haskellstack.org/ | sh`
         - Mac - silicon based: `curl -sSL https://get.haskellstack.org/ | sh` or `wget -qO- https://get.haskellstack.org/ | sh`
-        - Windows and other OS: please check the official website link `https://docs.haskellstack.org/en/stable/`.
 4. `$ stack install`
 5. `$ stack run`
 
