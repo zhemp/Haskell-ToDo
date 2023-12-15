@@ -8,7 +8,6 @@ import UI
 import Event
 import Data
 import Utility
-
 import Control.Monad (void)
 import qualified Brick.Main as M
 
