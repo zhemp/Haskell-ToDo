@@ -115,6 +115,8 @@ drawUI appState = [ui]
                                                             ,C.center (str "Mark as Done")
                                                             ,B.vBorder
                                                             ,C.center (str "Mark as Undone") 
+                                                            ,B.vBorder
+                                                            ,C.center (str "Change Theme") 
                                                             ]
                                                         ,B.hBorder
                                                         ,hBox[C.center (str "1")
@@ -126,6 +128,8 @@ drawUI appState = [ui]
                                                             ,C.center (str "4")
                                                             ,B.vBorder
                                                             ,C.center (str "5")
+                                                            ,B.vBorder
+                                                            ,C.center (str "+")
                                                             ]
                                                     ]
                                     ,case errmsg of
@@ -154,20 +158,16 @@ drawUI appState = [ui]
                                     ]
                                     ,B.hBorder
                                     ,vLimit 3 $ vBox [
-                                                        hBox[C.center (str "----")
+                                                        hBox[C.center (str "Discard")
                                                             ,B.vBorder
-                                                            ,C.center (str "----")
-                                                            ,B.vBorder
-                                                            ,C.center (str "----")
+                                                            ,C.center (str "Delete")
                                                             ,B.vBorder
                                                             ,C.center (str "Enter")
                                                             ]
                                                         ,B.hBorder
-                                                        ,hBox[C.center (str "+")
+                                                        ,hBox[C.center (str "ESC")
                                                             ,B.vBorder
-                                                            ,C.center (str "+")
-                                                            ,B.vBorder
-                                                            ,C.center (str "+")
+                                                            ,C.center (str "Backspace")
                                                             ,B.vBorder
                                                             ,C.center (str "Finish")
                                                             ]
@@ -266,10 +266,10 @@ violetThemeMap = A.attrMap V.defAttr
 
 darkvioletThemeMap :: A.AttrMap                     -- defined an attribute map for darkviolet theme
 darkvioletThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.black `on` (V.rgbColor 123 44 191)) 
-    , (uAttr,  V.black `on` (V.rgbColor 90 24 154))  
-    , (mAttr,  V.black `on` (V.rgbColor 60 9 108))  
-    , (nnAttr, V.black `on` (V.rgbColor 36 0 70) )  
+    [ (muAttr, V.white `on` (V.rgbColor 123 44 191)) 
+    , (uAttr,  V.white `on` (V.rgbColor 90 24 154))  
+    , (mAttr,  V.white `on` (V.rgbColor 60 9 108))  
+    , (nnAttr, V.white `on` (V.rgbColor 36 0 70) )  
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
@@ -286,10 +286,10 @@ pearThemeMap = A.attrMap V.defAttr
 
 mysteryThemeMap :: A.AttrMap                        -- defined an attribute map for mystery theme
 mysteryThemeMap = A.attrMap V.defAttr
-    [ (muAttr, V.black `on` (V.rgbColor 160 26 88))
-    , (uAttr,  V.black `on` (V.rgbColor 114 60 112))
-    , (mAttr,  V.black `on` (V.rgbColor 92 77 125))
-    , (nnAttr, V.black `on` (V.rgbColor 46 111 149) )
+    [ (muAttr, V.white `on` (V.rgbColor 160 26 88))
+    , (uAttr,  V.white `on` (V.rgbColor 114 60 112))
+    , (mAttr,  V.white `on` (V.rgbColor 92 77 125))
+    , (nnAttr, V.white `on` (V.rgbColor 46 111 149) )
     , (selectedFocusedAttr, V.black `on` V.brightWhite)
     , (borderFocusedAttr, fg (V.rgbColor 255 0 0))
     ]
