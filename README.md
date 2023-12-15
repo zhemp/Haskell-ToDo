@@ -59,11 +59,17 @@ We finished the following tasks:
   - Data Export: Allow users to export their to-do list for backup purposes.  
   - Data Import: Enable importing to-do lists from privious backups to ease the data transfer process.
 
-### Milestone 4 (If Time Allows): Synchronization and Accessibility  
-- Objective: Ensure data is accessible across multiple devices.  
+### ~~Milestone 4 (If Time Allows): Synchronization and Accessibility~~ (Deprecated and modified to the theme milestne) 
+- ~~Objective: Ensure data is accessible across multiple devices.~~ 
+- ~~Features:~~  
+  - ~~Syncing: Implement a synchronization mechanism to allow task data to be consistent across different devices.~~  
+  - ~~Cross-Device Accessibility: Enable users to access their to-do list from various devices seamlessly.~~
+  - 
+### Milestone 4 (If Time Allows): Theme switch  
+- Objective: Give user a better visual experience  
 - Features:  
-  - Syncing: Implement a synchronization mechanism to allow task data to be consistent across different devices.  
-  - Cross-Device Accessibility: Enable users to access their to-do list from various devices seamlessly.  
+  - Theme switch: user can switch between several themes to pick the favorite one. 
+  - Compatible with terminal of white or black background: The colors of different background shoule be carefully seleted such that no matter what background color of the user's terminal, he/she could select some themes have good visual effect.
 
 ## Original Projected Milestones (Deprecated)
 ### Milestone 1 (Week 8 - 9): Task Creation and Management
