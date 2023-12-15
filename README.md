@@ -4,7 +4,7 @@
 Jiajie Wang, Zihan Lyu, Zheming Pu
 
 ## How to install 
-This steps can only work on Unix based system
+This project based on brick-0.73 and only be supported on Unix based system.
 1. `$ git clone https://github.com/zhemp/Haskell-ToDo.git`
 2. `$ cd Haskell-ToDo`
 3. If you do not have stack on on your computer, check here `https://docs.haskellstack.org/en/stable/` for the latest updates.
