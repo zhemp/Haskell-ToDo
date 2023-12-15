@@ -143,7 +143,7 @@ appEvent appState (T.VtyEvent e) =
                                          in 
                                             M.continue $ insertState 5 updateDoneL $ insertState pointedListIndex updatedTodoL noErrApST
                     V.EvKey (V.KChar '+') [] -> 
-                            M.continue $ noErrApST {theme = theme noErrApST +1}                        
+                            M.continue $ noErrApST {theme = (theme noErrApST +1) `mod` 6 }                        
                     V.EvKey (V.KChar '-') [] ->
                         case L.listSelectedElement l of
                             Nothing -> M.continue noErrApST

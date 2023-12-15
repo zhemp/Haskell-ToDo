@@ -321,10 +321,11 @@ selectedFocusedAttr = A.attrName "selectedFocusedAttr"
 borderFocusedAttr = A.attrName "borderFocusedAttr"
 
 selectTheme = (\s -> let value = theme s in   -- a theme selection function based on current theme counter
-                        case value `mod` 6 of 
+                        case value  of 
                             0 -> defaultThemeMap
                             1 -> violetThemeMap
                             2 -> darkvioletThemeMap
                             3 -> pearThemeMap
                             4 -> mysteryThemeMap
-                            5 -> cottonCandyThemeMap)
+                            5 -> cottonCandyThemeMap
+                            _ -> defaultThemeMap)
