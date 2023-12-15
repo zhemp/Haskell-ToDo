@@ -110,6 +110,8 @@ drawUI appState = [ui]
                                                             ,B.vBorder
                                                             ,C.center (str "Add Sub Task")
                                                             ,B.vBorder
+                                                            ,C.center (str "Modify Task")
+                                                            ,B.vBorder
                                                             ,C.center (str "Delete")
                                                             ,B.vBorder
                                                             ,C.center (str "Mark as Done")
@@ -122,6 +124,8 @@ drawUI appState = [ui]
                                                         ,hBox[C.center (str "1")
                                                             ,B.vBorder
                                                             ,C.center (str "2")
+                                                            ,B.vBorder
+                                                            ,C.center (str "3")
                                                             ,B.vBorder
                                                             ,C.center (str "-")
                                                             ,B.vBorder
