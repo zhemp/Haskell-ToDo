@@ -119,6 +119,8 @@ drawUI appState = [ui]
                                                             ,C.center (str "Mark as Undone") 
                                                             ,B.vBorder
                                                             ,C.center (str "Change Theme") 
+                                                            ,B.vBorder
+                                                            ,C.center (str "Save")
                                                             ]
                                                         ,B.hBorder
                                                         ,hBox[C.center (str "1")
@@ -134,6 +136,8 @@ drawUI appState = [ui]
                                                             ,C.center (str "5")
                                                             ,B.vBorder
                                                             ,C.center (str "+")
+                                                            ,B.vBorder
+                                                            ,C.center (str "s")
                                                             ]
                                                     ]
                                     ,case errmsg of
