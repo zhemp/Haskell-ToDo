@@ -80,8 +80,9 @@ executable todoList-exe
 
 test-suite todoList-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: UtilityTest.hs
   other-modules:
+      Spec
       Paths_todoList
   autogen-modules:
       Paths_todoList
@@ -96,6 +97,7 @@ test-suite todoList-test
     , bytestring
     , containers
     , directory
+    , hspec
     , microlens
     , microlens-mtl
     , mtl

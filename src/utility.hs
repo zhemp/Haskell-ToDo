@@ -1,4 +1,3 @@
--- utility.hs
 module Utility where
 
 import Data
