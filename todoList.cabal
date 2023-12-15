@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           todoList
-version:        0.1.0.0
+version:        0.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/todoList#readme>
 homepage:       https://github.com/githubuser/todoList#readme
 bug-reports:    https://github.com/githubuser/todoList/issues
@@ -78,7 +78,7 @@ executable todoList-exe
 
 test-suite todoList-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: UtilityTest.hs
   other-modules:
       Paths_todoList
   autogen-modules:
@@ -93,6 +93,7 @@ test-suite todoList-test
     , brick <1
     , bytestring
     , containers
+    , hspec
     , microlens
     , microlens-mtl
     , mtl

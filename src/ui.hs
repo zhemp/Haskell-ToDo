@@ -1,4 +1,3 @@
--- ui.hs
 module UI where
 
 import Data

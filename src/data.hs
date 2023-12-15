@@ -45,7 +45,7 @@ data Task =
  | MUT L1Task
  | NNT L1Task
  | SUB (Int, Bool, String) 
- deriving (Show)
+ deriving (Show, Generic, Eq, Ord)
 
 data Name = Imp | Urg | Impurg | Nn | Done -- Add more names as needed
   deriving (Eq, Ord, Show)

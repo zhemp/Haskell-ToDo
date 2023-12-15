@@ -1,4 +1,3 @@
--- event.hs
 module Event where
 
 import Data
