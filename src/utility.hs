@@ -1,4 +1,3 @@
--- utility.hs
 module Utility where
 
 import Data
@@ -71,7 +70,6 @@ genIdToRankM appState =
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
 
-
 changeTaskContent :: Task -> String -> Task 
 changeTaskContent = go
     where 
@@ -109,7 +107,7 @@ getTaskLen l idx = go (Vec.toList (L.listElements l )) idx 0
                                                    else go t idx count
         go _     _  count = count
 
--- this function takes into a list and a id then return the index +1 of the last subtask
+-- this function takes into a list and a id then return the index +1 of the last subtask, If no such task, then output the length of the list
 getTaskEndIndex :: L.List Name Task -> Int -> Int
 getTaskEndIndex l idx = go (Vec.toList (L.listElements l )) idx 0 False
     where 
@@ -118,7 +116,7 @@ getTaskEndIndex l idx = go (Vec.toList (L.listElements l )) idx 0 False
         go (h:t) id count True  = if getTaskId h == idx then go t idx (count+1) True
                                                    else go t idx (count) True
 
-        go _     _  count _= count 
+        go _     _  count _     = count 
 
 
 -- This function takes a list of tasks and insert it in to the head of another list

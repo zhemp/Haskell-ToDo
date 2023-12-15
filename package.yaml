@@ -74,7 +74,7 @@ executables:
 
 tests:
   todoList-test:
-    main:                Spec.hs
+    main:                UtilityTest.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -83,3 +83,4 @@ tests:
     dependencies:
     - todoList
     - HUnit
+    - hspec
