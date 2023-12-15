@@ -25,7 +25,7 @@ drawUI appState = [ui]
         index_map = genIdToRankM appState -- index map to display 
         errmsg = errorMessage appState  --get error message ("Maybe error", "Nothing")
 
-        cur_theme = case (theme appState) `mod` 6 of -- get current theme, to determine theme name
+        cur_theme = case (theme appState) of -- get current theme, to determine theme name
             0 -> "Default" 
             1 -> "Violet"
             2 -> "Dark Violet"
