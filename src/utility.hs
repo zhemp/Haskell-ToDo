@@ -28,6 +28,8 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy (pack, unpack)
 import Control.Monad.IO.Class (liftIO)
+import System.Directory (doesFileExist)
+import System.IO (writeFile)
 
 
 
@@ -96,6 +98,7 @@ getPriority (MUT _) = 1
 getPriority (UT  _) = 2
 getPriority (IMT _) = 3
 getPriority (NNT _) = 4
+getPriority  _      = 0
 
 
 -- this function takes a list of tasks and a id then return the length of the current task
@@ -216,3 +219,24 @@ setMaxId :: AppState -> Int -> AppState
 setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
+exportState :: AppState -> FilePath -> IO ()
+exportState appState filePath = 
+    do    
+        checkAndCreateFile filePath
+        B.writeFile filePath (encode appState)
+
+importState :: FilePath -> IO (Maybe AppState)
+importState filePath = do
+    checkAndCreateFile filePath
+    file <- B.readFile filePath
+    return $ decode file
+
+
+checkAndCreateFile :: FilePath -> IO ()
+checkAndCreateFile filePath = do
+    fileExists <- doesFileExist filePath
+    if fileExists
+        then return ()
+        else do
+            writeFile filePath ""
+            return ()
