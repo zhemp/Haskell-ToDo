@@ -27,6 +27,8 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
 import Data.ByteString.Lazy (pack, unpack)
 import Control.Monad.IO.Class (liftIO)
+import System.Directory (doesFileExist)
+import System.IO (writeFile)
 
 
 
@@ -68,7 +70,6 @@ genIdToRankM appState =
 replaceTask :: Int -> Task -> L.List Name Task -> L.List Name Task
 replaceTask idx modifiedT l = L.listMoveBy (1) $ L.listInsert (idx) modifiedT $ L.listRemove idx l
 
-
 changeTaskContent :: Task -> String -> Task 
 changeTaskContent = go
     where 
@@ -95,6 +96,7 @@ getPriority (MUT _) = 1
 getPriority (UT  _) = 2
 getPriority (IMT _) = 3
 getPriority (NNT _) = 4
+getPriority  _      = 0
 
 
 -- this function takes a list of tasks and a id then return the length of the current task
@@ -105,7 +107,7 @@ getTaskLen l idx = go (Vec.toList (L.listElements l )) idx 0
                                                    else go t idx count
         go _     _  count = count
 
--- this function takes into a list and a id then return the index +1 of the last subtask
+-- this function takes into a list and a id then return the index +1 of the last subtask, If no such task, then output the length of the list
 getTaskEndIndex :: L.List Name Task -> Int -> Int
 getTaskEndIndex l idx = go (Vec.toList (L.listElements l )) idx 0 False
     where 
@@ -114,7 +116,7 @@ getTaskEndIndex l idx = go (Vec.toList (L.listElements l )) idx 0 False
         go (h:t) id count True  = if getTaskId h == idx then go t idx (count+1) True
                                                    else go t idx (count) True
 
-        go _     _  count _= count 
+        go _     _  count _     = count 
 
 
 -- This function takes a list of tasks and insert it in to the head of another list
@@ -215,3 +217,24 @@ setMaxId :: AppState -> Int -> AppState
 setMaxId  s newMaxId = s { curMaxId = newMaxId}
 
 
+exportState :: AppState -> FilePath -> IO ()
+exportState appState filePath = 
+    do    
+        checkAndCreateFile filePath
+        B.writeFile filePath (encode appState)
+
+importState :: FilePath -> IO (Maybe AppState)
+importState filePath = do
+    checkAndCreateFile filePath
+    file <- B.readFile filePath
+    return $ decode file
+
+
+checkAndCreateFile :: FilePath -> IO ()
+checkAndCreateFile filePath = do
+    fileExists <- doesFileExist filePath
+    if fileExists
+        then return ()
+        else do
+            writeFile filePath ""
+            return ()
