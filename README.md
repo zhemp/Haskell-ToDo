@@ -6,8 +6,14 @@ Jiajie Wang, Zihan Lyu, Zheming Pu
 ## How to install 
 1. `$ git clone https://github.com/zhemp/Haskell-ToDo.git`
 2. `$ cd Haskell-ToDo`
-3. `$ stack install`
-4. `$ stack run`
+3*. If you do not have stack on on your computer, check here `https://docs.haskellstack.org/en/stable/` for the latest updates.
+    - These command may outdated:
+        - Linux `curl -sSL https://get.haskellstack.org/ | sh`   or   `wget -qO- https://get.haskellstack.org/ | sh`
+        - Mac - intel based: `curl -sSL https://get.haskellstack.org/ | sh` or `wget -qO- https://get.haskellstack.org/ | sh`
+        - Mac - silicon based: `curl -sSL https://get.haskellstack.org/ | sh` or `wget -qO- https://get.haskellstack.org/ | sh`
+        - Windows and other OS: please check the official website link `https://docs.haskellstack.org/en/stable/`.
+4. `$ stack install`
+5. `$ stack run`
 
 ## Overview
 Most people have a need to keep track of their everyday tasks in an organized manner. As graduate students and command line aficionados, we're all about efficiency and simplicity. That's why we're taking on the challenge of developing a command line based To-Do List application using Haskell, with a special focus on the Brick library for that slick user interface. Our aim of this project is to deliver a user-friendly interface and some cool features. The following features and timeline are projected and expected. 
