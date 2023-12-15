@@ -6,7 +6,7 @@ Jiajie Wang, Zihan Lyu, Zheming Pu
 ## How to install 
 1. `$ git clone https://github.com/zhemp/Haskell-ToDo.git`
 2. `$ cd Haskell-ToDo`
-3*. If you do not have stack on on your computer, check here `https://docs.haskellstack.org/en/stable/` for the latest updates.
+3. If you do not have stack on on your computer, check here `https://docs.haskellstack.org/en/stable/` for the latest updates.
     - These command may outdated:
         - Linux `curl -sSL https://get.haskellstack.org/ | sh`   or   `wget -qO- https://get.haskellstack.org/ | sh`
         - Mac - intel based: `curl -sSL https://get.haskellstack.org/ | sh` or `wget -qO- https://get.haskellstack.org/ | sh`
