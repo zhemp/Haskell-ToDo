@@ -48,16 +48,16 @@ initialState :: AppState
 
 initialState = AppState {
     pointer  = 1,
-    status   = 0,
-    theme    = 0,
-    imList   = L.list Imp    (Vec.fromList [(IMT (0, "test")), (SUB (0, True, "line")), (IMT (1, "test")), (IMT (2, "test"))]) 0,
-    uList    = L.list Urg    (Vec.fromList [(UT (3, "test")), (SUB (3, True, "line")), (UT (4, "test")), (UT (5, "test"))]) 0,
-    muList   = L.list Impurg (Vec.fromList [(MUT (6, "test")), (SUB (6, False, "line1")),(SUB (6, False, "line2")), (MUT (7, "test")), (MUT (8, "test"))]) 0,
-    nnList   = L.list Nn     (Vec.fromList [(NNT (9, "test")), (SUB (9, True, "line")), (NNT (10, "test")), (NNT (11, "test"))]) 0,
-    donelist = L.list Done   (Vec.empty) 0,
-    curMaxId = 11,
-    inputField = Nothing,
-    errorMessage = Nothing
+      status   = 0,
+      theme    = 0,
+      imList   = L.list Imp    (Vec.empty) 0,
+      uList    = L.list Urg    (Vec.empty) 0,
+      muList   = L.list Impurg (Vec.empty) 0,
+      nnList   = L.list Nn     (Vec.empty) 0,
+      donelist = L.list Done   (Vec.empty) 0,
+      curMaxId = 0,
+      inputField = Nothing,       
+      errorMessage = Nothing
         }
 
 emptyS = AppState {
