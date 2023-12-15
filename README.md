@@ -8,7 +8,8 @@ Most people have a need to keep track of their everyday tasks in an organized ma
 ## Progress at Dec 15 
 ### Key components 
 The project can be divided into 3 sections at the first glance from a vertical view.  
-![image](https://github.com/zhemp/Haskell-ToDo/assets/83204691/f0537610-0217-4445-867e-6c08650060bf)
+<img width="1086" alt="Screenshot 2023-12-15 at 1 25 45 AM" src="https://github.com/zhemp/Haskell-ToDo/assets/83204691/2d7d5dac-8005-4cad-ba28-2270163f7b8e">
+
 
 1. The first section is a universal status bar. This bar could remind the user of the number of tasks he/she has done and to do, as well as the current theme. But the most important effect is that it make the app looks better by leave margins between middle section and the ceiling.
 2. The second section can be divided into two parts. The right part is a list of done tasks, which is developed to collect the task that user have done, We believe this could provide user with a sense of achievement. The left part contains four lists of task of different priority level. From top to bottom, they are "important and uergent", "urgent", "important", "not important and not urgent". We believe this could enable user to schedule their time in a more reasonable and clear manner. User can create, delete, modify main tasks and subtasks. Also, user could tag certain tasks as done. If a main task is tagged as done, it would be moved to the done list. User can also restore it if they operate by mistake.
@@ -36,8 +37,9 @@ We have met loads of challenges during the development.
 
 #### Challenges that still can be tried:
   muti-devices synchronization
-
-
+   
+### Goal accomplishment
+We have nearly accomplished all the objectives we set at the project's outset, with the exception of network synchronization. This was due to our realization that such a feature is not particularly valuable for a terminal-based to-do list. Instead, we shifted our focus to implementing "themes" to enhance the visual appeal of the to-do list. I believe we have successfully achieved this revised goal, making the application more attractive and user-friendly.
 ## Progress at Dec 1
 We finished the following tasks:  
 - User Interface (UI) Development: The user interface has been defined and implemented, ensuring that users can interact effectively with the system. 
