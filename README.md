@@ -6,6 +6,7 @@ Jiajie Wang, Zihan Lyu, Zheming Pu
 ## Acknowledgment
 We used the demo provided by the author of the brick library **but** just as a extremely basic starter skeleton: `https://github.com/jtdaugherty/brick/blob/master/programs/ListViDemo.hs`. 
 It is just a demo for showing how to use the brick.widget.list, and it can be seen a part of brick. 
+
 What I need to highlight is, **beyond this initial usage, our project significantly diverges from the demo**. All the features in our project and the demo are different. Although the demo has add, delete, moving selection functionalities, our implementation is totally **different**, our functions behavior is totally **different**.
 
 We are grateful for the demo's guidance in the early stages, particularly in demonstrating basic functionalities like theApp, main, appEvent, and drawUI, as well as elementary operations on widget.list. These insights were instrumental in our start.  **However, all the features and functionalities in our project, including add, move, delete, create main/sub tasks, priority, undo, clear all .etc, are implemented independently by ourselves.**
