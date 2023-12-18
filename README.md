@@ -3,6 +3,15 @@
 ## Group Members
 Jiajie Wang, Zihan Lyu, Zheming Pu
 
+## Acknowledgment
+We used the demo provided by the author of the brick library **but** just as a extremely basic starter skeleton: `https://github.com/jtdaugherty/brick/blob/master/programs/ListViDemo.hs`. 
+
+
+It is just a demo for showing how to use the brick.widget.list, and it can be seen a part of brick. 
+Except we still use widget.list as a core component in our data structure, there is no similiarity between our code and the demo. All the features in our project and the demo are different. Although the demo has add, delete, moving selection functionalities, our implementation is totally **different**, our functions behavior is totally **different**.
+
+I want to say thanks to the demo since it does help my team a lot at the very beginning. It tells the basic functions (theApp, main, appEvent, drawUI) we need to implement, the basic operation I can do on widget.list. But those are all we got from the demo. **All features (add, move, delete, create main/sub tasks, priority, undo, clear all .etc) are implemented by ourselves.**
+
 ## How to install 
 This project based on brick-0.73 and only be supported on Unix based system.
 1. `$ git clone https://github.com/zhemp/Haskell-ToDo.git`
